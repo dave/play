@@ -8,7 +8,7 @@ import (
 	"go/format"
 
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/playground/actions"
+	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/js"
 )
 

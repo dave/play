@@ -6,7 +6,7 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/builder"
 	"github.com/dave/jsgo/builderjs"
-	"github.com/dave/jsgo/playground/actions"
+	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/compiler/prelude"
 	"honnef.co/go/js/dom"
 )

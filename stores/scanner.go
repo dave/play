@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/playground/actions"
+	"github.com/dave/play/actions"
 )
 
 func NewScannerStore(app *App) *ScannerStore {

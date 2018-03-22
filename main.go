@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/dave/jsgo/playground/actions"
-	"github.com/dave/jsgo/playground/stores"
-	"github.com/dave/jsgo/playground/views"
+	"github.com/dave/play/actions"
+	"github.com/dave/play/stores"
+	"github.com/dave/play/views"
 	"github.com/gopherjs/vecty"
 	"github.com/vincent-petithory/dataurl"
 	"honnef.co/go/js/dom"

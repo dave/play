@@ -1,8 +1,8 @@
 package views
 
 import (
-	"github.com/dave/jsgo/playground/actions"
-	"github.com/dave/jsgo/playground/stores"
+	"github.com/dave/play/actions"
+	"github.com/dave/play/stores"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
 	"github.com/gopherjs/vecty/prop"

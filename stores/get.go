@@ -2,8 +2,8 @@ package stores
 
 import (
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/playground/actions"
 	"github.com/dave/jsgo/server/messages"
+	"github.com/dave/play/actions"
 )
 
 func NewGetStore(app *App) *GetStore {
