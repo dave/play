@@ -7,6 +7,8 @@ import (
 
 	"go/format"
 
+	"strings"
+
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/js"
@@ -107,13 +109,15 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		})
 		payload.Notify()
 	case *actions.FormatCode:
-		b, err := format.Source([]byte(s.files[s.current]))
-		if err != nil {
-			s.app.Fail(err)
-			return true
+		if strings.HasPrefix(s.current, ".go") {
+			b, err := format.Source([]byte(s.files[s.current]))
+			if err != nil {
+				s.app.Fail(err)
+				return true
+			}
+			s.files[s.current] = string(b)
+			payload.Notify()
 		}
-		s.files[s.current] = string(b)
-		payload.Notify()
 		if a.Then != nil {
 			s.app.Dispatch(a.Then)
 		}

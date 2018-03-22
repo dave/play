@@ -67,7 +67,7 @@ func (v *AddFileModal) save(*vecty.Event) {
 		v.app.Fail(fmt.Errorf("filename %s must not contain a slash", value))
 		return
 	}
-	if !strings.HasSuffix(value, ".go") {
+	if !strings.HasSuffix(value, ".go") && !strings.Contains(value, ".") {
 		value = value + ".go"
 	}
 	for name := range v.app.Editor.Files() {

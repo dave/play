@@ -3,6 +3,9 @@ package stores
 import (
 	"context"
 
+	"bytes"
+	"text/template"
+
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/builder"
 	"github.com/dave/jsgo/builderjs"
@@ -69,6 +72,32 @@ func (s *CompileStore) compile() {
 	frame.Style().Set("height", "100%")
 	frame.Style().Set("border", "0")
 	holder.AppendChild(frame)
+	if index, ok := s.app.Editor.Files()["index.jsgo.html"]; ok {
+		// has index
+
+		indexTemplate, err := template.New("index").Parse(index)
+		if err != nil {
+			s.app.Fail(err)
+			return
+		}
+		data := struct{ Script string }{Script: ""}
+		buf := &bytes.Buffer{}
+		if err := indexTemplate.Execute(buf, data); err != nil {
+			s.app.Fail(err)
+			return
+		}
+
+		frameDoc := frame.ContentDocument().Underlying()
+		frameDoc.Call("open")
+		frameDoc.Call("write", buf.String())
+		frameDoc.Call("close")
+
+		c := make(chan struct{})
+		frame.AddEventListener("load", false, func(event dom.Event) {
+			close(c)
+		})
+		<-c
+	}
 
 	content := frame.ContentDocument()
 	head := content.GetElementsByTagName("head")[0].(*dom.BasicHTMLElement)
