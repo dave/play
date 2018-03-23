@@ -22,6 +22,7 @@ type Page struct {
 	split         *splitter.Split
 	compileButton *vecty.HTML
 	optionsButton *vecty.HTML
+	editor        *Editor
 }
 
 func NewPage(app *stores.App) *Page {
@@ -47,6 +48,7 @@ func (v *Page) Mount() {
 		js.M{
 			"sizes": v.Sizes,
 			"onDragEnd": func() {
+				v.editor.Resize()
 				v.app.Dispatch(&actions.UserChangedSplit{
 					Sizes: v.split.GetSizes(),
 				})
@@ -78,13 +80,16 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 }
 
 func (v *Page) renderLeft() *vecty.HTML {
+
+	v.editor = NewEditor(v.app)
+
 	return elem.Div(
 		vecty.Markup(
 			prop.ID("left"),
 			vecty.Class("split"),
 		),
 		v.renderHeader(),
-		NewEditor(v.app),
+		v.editor,
 	)
 }
 

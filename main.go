@@ -39,7 +39,7 @@ const Styles = `
 		height: 100%;
 	}
 	.editor {
-		height: calc(100% - 65px);
+		height: calc(100% - 56px);
 		width: 100%;
 	}
 	.split {

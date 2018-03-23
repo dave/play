@@ -10,6 +10,7 @@ import (
 	"github.com/gopherjs/vecty/elem"
 	"github.com/gopherjs/vecty/prop"
 	"github.com/tulir/gopher-ace"
+	"honnef.co/go/js/dom"
 )
 
 type Editor struct {
@@ -49,6 +50,11 @@ func (v *Editor) Mount() {
 		v.editor.ClearSelection()
 		v.editor.MoveCursorTo(0, 0)
 	}
+
+	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
+		v.Resize()
+	})
+
 	var changes int
 	v.editor.OnChange(func(ev *js.Object) {
 		changes++
@@ -62,6 +68,10 @@ func (v *Editor) Mount() {
 			}
 		}()
 	})
+}
+
+func (v *Editor) Resize() {
+	v.editor.Call("resize")
 }
 
 func (v *Editor) Unmount() {
