@@ -48,31 +48,28 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 		}
 		s.app.Dispatch(&actions.ChangeSplit{Sizes: sizes})
 
-		var current string
-		found, err = s.local.Find("current-file", &current)
-		if err != nil {
-			s.app.Fail(err)
-			return true
-		}
-		if !found {
-			current = defaultFile
-		}
-		s.app.Dispatch(&actions.ChangeFile{Name: current})
-
-		var files map[string]string
 		hash := strings.TrimPrefix(js.Global.Get("location").Get("hash").String(), "#")
 
 		// No hash -> load files from local storage or use default files
 		if hash == "" {
+			var current string
+			var files map[string]string
 			found, err = s.local.Find("files", &files)
 			if err != nil {
 				s.app.Fail(err)
 				return true
 			}
-			if !found {
+			if found {
+				// if we found files in local storage, also load the current file
+				if _, err := s.local.Find("current-file", &current); err != nil {
+					s.app.Fail(err)
+					return true
+				}
+			} else {
 				files = defaultFiles
+				current = defaultFile
 			}
-			s.app.Dispatch(&actions.LoadFiles{Files: files})
+			s.app.Dispatch(&actions.LoadFiles{Files: files, Current: current})
 			break
 		}
 
@@ -92,8 +89,8 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 				s.app.Fail(err)
 				return true
 			}
-			var ok bool
-			if files, ok = m.Source["main"]; !ok {
+			files, ok := m.Source["main"]
+			if !ok {
 				s.app.Fail(errors.New("package main not found in source"))
 				return true
 			}

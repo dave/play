@@ -149,6 +149,10 @@ func (v *Page) renderHeader() *vecty.HTML {
 			vecty.Text("Delete file..."),
 		),
 	)
+	fileDropdownClasses := vecty.Class("nav-item", "dropdown")
+	if v.app.Editor.Current() == "" {
+		fileDropdownClasses = vecty.Class("nav-item", "dropdown", "d-none")
+	}
 
 	return elem.Navigation(
 		vecty.Markup(
@@ -223,7 +227,7 @@ func (v *Page) renderHeader() *vecty.HTML {
 			*/
 			elem.ListItem(
 				vecty.Markup(
-					vecty.Class("nav-item", "dropdown"),
+					fileDropdownClasses,
 				),
 				elem.Anchor(
 					vecty.Markup(

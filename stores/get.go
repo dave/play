@@ -20,7 +20,7 @@ type GetStore struct {
 func (s *GetStore) Handle(payload *flux.Payload) bool {
 	switch action := payload.Action.(type) {
 	case *actions.GetStart:
-		s.app.Log("getting", action.Path)
+		s.app.Log("downloading")
 		s.app.Dispatch(&actions.Dial{
 			Url:     defaultUrl(),
 			Open:    func() flux.ActionInterface { return &actions.GetOpen{Path: action.Path} },
@@ -38,17 +38,10 @@ func (s *GetStore) Handle(payload *flux.Payload) bool {
 	case *actions.GetMessage:
 		switch message := action.Message.(type) {
 		case messages.Downloading:
-			if message.Starting {
-				s.app.Log("downloading")
-			} else if len(message.Message) > 0 {
+			if len(message.Message) > 0 {
 				s.app.Log(message.Message)
 			}
 		case messages.GetComplete:
-			if len(message.Source[action.Path]) == 1 {
-				s.app.Log("got 1 file")
-			} else {
-				s.app.Logf("got %d files", len(message.Source[action.Path]))
-			}
 			s.app.Dispatch(&actions.LoadFiles{Files: message.Source[action.Path]})
 		}
 	case *actions.GetClose:

@@ -68,9 +68,6 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 	case *actions.ChangeText:
 		s.files[s.current] = a.Text
 		payload.Notify()
-	case *actions.ChangeFile:
-		s.current = a.Name
-		payload.Notify()
 	case *actions.UserChangedSplit:
 		s.sizes = a.Sizes
 	case *actions.UserChangedText:
@@ -104,6 +101,22 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		payload.Notify()
 	case *actions.LoadFiles:
 		s.files = a.Files
+		var found bool
+		current := a.Current
+		// if no current file specified, default to "main.go". If it doesn't exist, use the first file.
+		if current == "" {
+			current = "main.go"
+		}
+		for name := range s.files {
+			if current == name {
+				found = true
+				s.current = current
+				break
+			}
+		}
+		if !found && len(s.files) > 0 {
+			s.current = s.Filenames()[0]
+		}
 		s.app.Dispatch(&actions.ChangeText{
 			Text: s.files[s.current],
 		})

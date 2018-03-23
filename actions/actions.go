@@ -45,11 +45,8 @@ type ChangeText struct {
 }
 
 type LoadFiles struct {
-	Files map[string]string
-}
-
-type ChangeFile struct {
-	Name string
+	Files   map[string]string
+	Current string
 }
 
 type UserChangedSplit struct {
