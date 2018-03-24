@@ -85,7 +85,11 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		payload.Notify()
 	case *actions.AddFile:
 		js.Global.Call("$", "#add-file-modal").Call("modal", "hide")
-		s.files[a.Name] = ""
+		if s.app.Scanner.Name() != "" && strings.HasSuffix(a.Name, ".go") {
+			s.files[a.Name] = "package " + s.app.Scanner.Name() + "\n\n"
+		} else {
+			s.files[a.Name] = ""
+		}
 		s.current = a.Name
 		payload.Notify()
 	case *actions.DeleteFile:

@@ -150,7 +150,7 @@ func (v *Page) renderHeader() *vecty.HTML {
 		),
 	)
 	fileDropdownClasses := vecty.Class("nav-item", "dropdown")
-	if v.app.Editor.Current() == "" {
+	if v.app.Editor.Current() == "" || len(v.app.Editor.Files()) <= 1 {
 		fileDropdownClasses = vecty.Class("nav-item", "dropdown", "d-none")
 	}
 
@@ -345,6 +345,21 @@ func (v *Page) renderHeader() *vecty.HTML {
 							}).PreventDefault(),
 						),
 						vecty.Text("Share"),
+					),
+					elem.Div(
+						vecty.Markup(
+							vecty.Class("dropdown-divider"),
+						),
+					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
+							prop.Href(""),
+							event.Click(func(e *vecty.Event) {
+								v.app.Dispatch(&actions.AddFileClick{})
+							}).PreventDefault(),
+						),
+						vecty.Text("Add file..."),
 					),
 					/*
 

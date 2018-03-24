@@ -8,6 +8,8 @@ import (
 
 	"sort"
 
+	"strings"
+
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
 )
@@ -23,6 +25,11 @@ func NewScannerStore(app *App) *ScannerStore {
 type ScannerStore struct {
 	app     *App
 	imports map[string][]string
+	name    string
+}
+
+func (s *ScannerStore) Name() string {
+	return s.name
 }
 
 // Imports returns all the imports from all files
@@ -64,6 +71,8 @@ func (s *ScannerStore) refresh(filename, contents string) bool {
 
 	// ignore errors
 	f, _ := parser.ParseFile(fset, filename, contents, parser.ImportsOnly)
+
+	s.name = strings.TrimSuffix(f.Name.Name, "_test")
 
 	var imports []string
 	for _, v := range f.Imports {
