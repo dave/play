@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"honnef.co/go/js/dom"
-
 	"encoding/json"
 
 	"errors"
@@ -75,7 +73,7 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 
 		// Sha in hash -> load files from src.jsgo.io json blob
 		if shaRegex.MatchString(hash) {
-			resp, err := http.Get(fmt.Sprintf("https://%s/%s.json", srcHost(), hash))
+			resp, err := http.Get(fmt.Sprintf("https://%s/%s.json", s.app.SrcHost(), hash))
 			if err != nil {
 				s.app.Fail(err)
 				return true
@@ -171,15 +169,5 @@ func init() {
     rand.Seed(time.Now().UTC().UnixNano())
 }`}
 )
-
-func srcHost() string {
-	var url string
-	if strings.HasPrefix(dom.GetWindow().Document().DocumentURI(), "https://") {
-		url = "src.jsgo.io"
-	} else {
-		url = "dev-src.jsgo.io"
-	}
-	return url
-}
 
 var shaRegex = regexp.MustCompile("^[0-9a-f]{40}$")

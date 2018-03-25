@@ -11,6 +11,10 @@ import (
 
 	"errors"
 
+	"net/http"
+
+	"sync"
+
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/actions"
@@ -25,6 +29,8 @@ type ArchiveStore struct {
 
 	// index (path -> item) of the previously received update
 	index messages.Index
+
+	wait sync.WaitGroup
 }
 
 type CacheItem struct {
@@ -149,25 +155,52 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				s.app.Logf("building")
 			}
 		case messages.Archive:
-			r, err := gzip.NewReader(bytes.NewBuffer(message.Contents))
-			if err != nil {
-				s.app.Fail(err)
-				return true
+			if message.Standard {
+				s.wait.Add(1)
+				go func() {
+					defer s.wait.Done()
+					defer close(payload.Done)
+					resp, err := http.Get(fmt.Sprintf("https://%s/%s.%s.a", s.app.PkgHost(), message.Path, message.Hash))
+					if err != nil {
+						s.app.Fail(err)
+						return
+					}
+					var a compiler.Archive
+					if err := gob.NewDecoder(resp.Body).Decode(&a); err != nil {
+						s.app.Fail(err)
+						return
+					}
+					s.cache[message.Path] = CacheItem{
+						Hash:    message.Hash,
+						Archive: &a,
+					}
+					s.app.Log(a.Name)
+				}()
+				return false
+			} else {
+				r, err := gzip.NewReader(bytes.NewBuffer(message.Contents))
+				if err != nil {
+					s.app.Fail(err)
+					return true
+				}
+				var a compiler.Archive
+				if err := gob.NewDecoder(r).Decode(&a); err != nil {
+					s.app.Fail(err)
+					return true
+				}
+				s.cache[message.Path] = CacheItem{
+					Hash:    message.Hash,
+					Archive: &a,
+				}
+				s.app.Log(a.Name)
 			}
-			var a compiler.Archive
-			if err := gob.NewDecoder(r).Decode(&a); err != nil {
-				s.app.Fail(err)
-				return true
-			}
-			s.cache[message.Path] = CacheItem{
-				Hash:    message.Hash,
-				Archive: &a,
-			}
-			s.app.Logf("caching %s", a.Name)
 		case messages.Index:
 			s.index = message
 		}
 	case *actions.UpdateClose:
+
+		s.wait.Wait()
+
 		if !s.Fresh() {
 			s.app.Fail(errors.New("websocket closed but archives not updated"))
 			return true

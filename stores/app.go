@@ -103,3 +103,23 @@ func requestAnimationFrame() {
 	js.Global.Call("requestAnimationFrame", func() { close(c) })
 	<-c
 }
+
+func (a *App) SrcHost() string {
+	var url string
+	if strings.HasPrefix(dom.GetWindow().Document().DocumentURI(), "https://") {
+		url = "src.jsgo.io"
+	} else {
+		url = "dev-src.jsgo.io"
+	}
+	return url
+}
+
+func (a *App) PkgHost() string {
+	var url string
+	if strings.HasPrefix(dom.GetWindow().Document().DocumentURI(), "https://") {
+		url = "pkg.jsgo.io"
+	} else {
+		url = "dev-pkg.jsgo.io"
+	}
+	return url
+}
