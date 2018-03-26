@@ -159,7 +159,6 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				s.wait.Add(1)
 				go func() {
 					defer s.wait.Done()
-					defer close(payload.Done)
 					resp, err := http.Get(fmt.Sprintf("https://%s/%s.%s.a", s.app.PkgHost(), message.Path, message.Hash))
 					if err != nil {
 						s.app.Fail(err)
@@ -176,7 +175,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 					}
 					s.app.Log(a.Name)
 				}()
-				return false
+				return true
 			} else {
 				r, err := gzip.NewReader(bytes.NewBuffer(message.Contents))
 				if err != nil {
