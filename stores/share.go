@@ -6,7 +6,7 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/actions"
-	"honnef.co/go/js/dom"
+	"github.com/gopherjs/gopherjs/js"
 )
 
 func NewShareStore(app *App) *ShareStore {
@@ -45,7 +45,7 @@ func (s *ShareStore) Handle(payload *flux.Payload) bool {
 		case messages.Storing:
 			s.app.Log("storing")
 		case messages.ShareComplete:
-			dom.GetWindow().Document().Underlying().Set("location", fmt.Sprintf("#%s", message.Hash))
+			js.Global.Get("history").Call("replaceState", js.M{}, "", fmt.Sprintf("/%s", message.Hash))
 			s.app.Log("shared")
 		}
 	case *actions.ShareClose:

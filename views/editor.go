@@ -62,8 +62,13 @@ func (v *Editor) Mount() {
 		go func() {
 			<-time.After(time.Millisecond * 250)
 			if before == changes {
+				value := v.editor.GetValue()
+				if value == v.app.Editor.Files()[v.app.Editor.Current()] {
+					// don't fire event if text hasn't changed
+					return
+				}
 				v.app.Dispatch(&actions.UserChangedText{
-					Text: v.editor.GetValue(),
+					Text: value,
 				})
 			}
 		}()

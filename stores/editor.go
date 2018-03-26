@@ -61,7 +61,6 @@ func (s *EditorStore) Filenames() []string {
 
 func (s *EditorStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
-
 	case *actions.ChangeSplit:
 		s.sizes = a.Sizes
 		payload.Notify()
@@ -71,6 +70,7 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 	case *actions.UserChangedSplit:
 		s.sizes = a.Sizes
 	case *actions.UserChangedText:
+		s.clearState()
 		s.files[s.current] = a.Text
 	case *actions.UserChangedFile:
 		s.current = a.Name
@@ -90,6 +90,7 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		} else {
 			s.files[a.Name] = ""
 		}
+		s.clearState()
 		s.current = a.Name
 		payload.Notify()
 	case *actions.DeleteFile:
@@ -102,6 +103,7 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		if s.current == a.Name {
 			s.current = s.Filenames()[0]
 		}
+		s.clearState()
 		payload.Notify()
 	case *actions.LoadFiles:
 		s.files = a.Files
@@ -126,7 +128,7 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		})
 		payload.Notify()
 	case *actions.FormatCode:
-		if strings.HasPrefix(s.current, ".go") {
+		if strings.HasSuffix(s.current, ".go") {
 			b, err := format.Source([]byte(s.files[s.current]))
 			if err != nil {
 				s.app.Fail(err)
@@ -140,4 +142,8 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		}
 	}
 	return true
+}
+
+func (s *EditorStore) clearState() {
+	js.Global.Get("history").Call("replaceState", js.M{}, "", "/")
 }

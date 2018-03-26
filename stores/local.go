@@ -15,7 +15,7 @@ import (
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/locstor"
 	"github.com/dave/play/actions"
-	"github.com/gopherjs/gopherjs/js"
+	"honnef.co/go/js/dom"
 )
 
 type LocalStore struct {
@@ -46,10 +46,10 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 		}
 		s.app.Dispatch(&actions.ChangeSplit{Sizes: sizes})
 
-		hash := strings.TrimPrefix(js.Global.Get("location").Get("hash").String(), "#")
+		location := strings.TrimPrefix(dom.GetWindow().Location().Pathname, "/")
 
 		// No hash -> load files from local storage or use default files
-		if hash == "" {
+		if location == "" {
 			var current string
 			var files map[string]string
 			found, err = s.local.Find("files", &files)
@@ -72,8 +72,8 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 		}
 
 		// Sha in hash -> load files from src.jsgo.io json blob
-		if shaRegex.MatchString(hash) {
-			resp, err := http.Get(fmt.Sprintf("https://%s/%s.json", s.app.SrcHost(), hash))
+		if shaRegex.MatchString(location) {
+			resp, err := http.Get(fmt.Sprintf("https://%s/%s.json", s.app.SrcHost(), location))
 			if err != nil {
 				s.app.Fail(err)
 				return true
@@ -97,8 +97,8 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 		}
 
 		// Package path in hash -> open websocket and load files
-		hash = strings.TrimPrefix(strings.TrimSuffix(hash, "/"), "/")
-		s.app.Dispatch(&actions.GetStart{Path: hash})
+		location = strings.TrimSuffix(location, "/")
+		s.app.Dispatch(&actions.GetStart{Path: location})
 
 	case *actions.UserChangedSplit:
 		if err := s.local.Save("split-sizes", action.Sizes); err != nil {
