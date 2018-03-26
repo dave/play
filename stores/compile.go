@@ -7,7 +7,6 @@ import (
 	"text/template"
 
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/builder"
 	"github.com/dave/jsgo/builderjs"
 	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/compiler/prelude"
@@ -107,7 +106,7 @@ func (s *CompileStore) compile() {
 	head.AppendChild(scriptPrelude)
 
 	for _, d := range deps {
-		code, _, err := builder.GetPackageCode(context.Background(), d, false, false)
+		code, _, err := builderjs.GetPackageCode(context.Background(), d, false, false)
 		if err != nil {
 			s.app.Fail(err)
 			return
