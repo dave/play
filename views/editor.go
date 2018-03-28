@@ -55,13 +55,9 @@ func (v *Editor) Mount() {
 		v.Resize()
 	})
 
-	go func() {
-		// TODO: FIX THIS KLUDGE
-		// This makes the editor render properly in Firefox. We should attach to a "loaded" event rather
-		// than have this arbitrary pause.
-		<-time.After(time.Millisecond * 100)
+	v.editor.Get("renderer").Call("on", "afterRender", func() {
 		v.Resize()
-	}()
+	})
 
 	var changes int
 	v.editor.OnChange(func(ev *js.Object) {
