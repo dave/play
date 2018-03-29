@@ -51,6 +51,10 @@ func (s *DeployStore) Handle(payload *flux.Payload) bool {
 		})
 	case *actions.DeployMessage:
 		switch message := action.Message.(type) {
+		case messages.Downloading:
+			if message.Message != "" {
+				s.app.Log(message.Message)
+			}
 		case messages.Compiling:
 			if message.Message != "" {
 				s.app.Log(message.Message)

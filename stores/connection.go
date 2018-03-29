@@ -78,11 +78,7 @@ func (s *ConnectionStore) Handle(payload *flux.Payload) bool {
 				}
 				s.app.Debug(fmt.Sprintf("Received %T", m), m)
 				if e, ok := m.(messages.Error); ok {
-					if e.Path != "" {
-						s.app.Fail(fmt.Errorf("%s: %s", e.Path, e.Message))
-					} else {
-						s.app.Fail(errors.New(e.Message))
-					}
+					s.app.Fail(errors.New(e.Message))
 					return
 				}
 				s.app.Dispatch(action.Message(m))
