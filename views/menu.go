@@ -304,6 +304,19 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 						),
 						vecty.Text("Add file..."),
 					),
+					elem.Div(
+						vecty.Markup(
+							vecty.Class("dropdown-divider"),
+						),
+					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
+							prop.Href("https://github.com/dave/play"),
+							vecty.Property("target", "_blank"),
+						),
+						vecty.Text("More info"),
+					),
 					/*
 
 						elem.Div(

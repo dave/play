@@ -121,6 +121,7 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 			vecty.Markup(
 				prop.Href("https://github.com/dave/play"),
 				vecty.Style("display", githubBannerDisplay),
+				vecty.Property("target", "_blank"),
 			),
 			elem.Image(
 				vecty.Markup(
