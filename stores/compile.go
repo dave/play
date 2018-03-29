@@ -23,10 +23,15 @@ func NewCompileStore(app *App) *CompileStore {
 type CompileStore struct {
 	app       *App
 	compiling bool
+	compiled  bool
 }
 
 func (s *CompileStore) Compiling() bool {
 	return s.compiling
+}
+
+func (s *CompileStore) Compiled() bool {
+	return s.compiled
 }
 
 func (s *CompileStore) Handle(payload *flux.Payload) bool {
@@ -35,6 +40,7 @@ func (s *CompileStore) Handle(payload *flux.Payload) bool {
 		s.compiling = true
 		s.compile()
 		s.compiling = false
+		payload.Notify()
 	}
 	return true
 }
@@ -136,5 +142,6 @@ func (s *CompileStore) compile() {
 	`)
 	head.AppendChild(scriptInit)
 
+	s.compiled = true
 	s.app.Log()
 }

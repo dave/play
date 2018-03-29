@@ -102,6 +102,10 @@ const Styles = `
 `
 
 func (v *Page) Render() vecty.ComponentOrHTML {
+	githubBannerDisplay := ""
+	if v.app.Compile.Compiled() {
+		githubBannerDisplay = "none"
+	}
 	return elem.Body(
 		elem.Div(
 			vecty.Markup(
@@ -112,6 +116,22 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 			NewAddFileModal(v.app),
 			NewDeleteFileModal(v.app),
 			NewDeployDoneModal(v.app),
+		),
+		elem.Anchor(
+			vecty.Markup(
+				prop.Href("https://github.com/dave/play"),
+				vecty.Style("display", githubBannerDisplay),
+			),
+			elem.Image(
+				vecty.Markup(
+					vecty.Style("position", "absolute"),
+					vecty.Style("top", "0"),
+					vecty.Style("right", "0"),
+					vecty.Style("border", "0"),
+					prop.Src("https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"),
+					vecty.Property("alt", "Fork me on GitHub"),
+				),
+			),
 		),
 	)
 }
