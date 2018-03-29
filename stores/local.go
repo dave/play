@@ -105,7 +105,7 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 			s.app.Fail(err)
 			return true
 		}
-	case *actions.UserChangedText:
+	case *actions.UserChangedText, *actions.FormatCode:
 		payload.Wait(s.app.Editor)
 		if err := s.saveFiles(); err != nil {
 			s.app.Fail(err)
