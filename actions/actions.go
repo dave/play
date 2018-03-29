@@ -69,7 +69,6 @@ type DeleteFile struct {
 }
 type AddFileClick struct{}
 type DeleteFileClick struct{}
-type DeployClick struct{}
 
 type ImportsChanged struct{}
 

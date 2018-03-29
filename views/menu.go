@@ -326,7 +326,7 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 								vecty.Class("dropdown-item"),
 								prop.Href(""),
 								event.Click(func(e *vecty.Event) {
-									v.app.Dispatch(&actions.DeployClick{})
+									v.app.Dispatch(&actions.DeployStart{})
 								}).PreventDefault(),
 							),
 							vecty.Text("Deploy"),

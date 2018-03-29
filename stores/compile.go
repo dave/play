@@ -70,7 +70,6 @@ func (s *CompileStore) compile() {
 	frame.Style().Set("width", "100%")
 	frame.Style().Set("height", "100%")
 	frame.Style().Set("border", "0")
-	holder.AppendChild(frame)
 
 	// We need to wait for the iframe to load before adding contents or Firefox will clear the iframe
 	// after momentarily flashing up the contents.
@@ -78,6 +77,8 @@ func (s *CompileStore) compile() {
 	frame.AddEventListener("load", false, func(event dom.Event) {
 		close(c)
 	})
+
+	holder.AppendChild(frame)
 	<-c
 
 	if index, ok := s.app.Editor.Files()["index.jsgo.html"]; ok {

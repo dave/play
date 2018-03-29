@@ -29,7 +29,7 @@ func (s *DeployStore) Handle(payload *flux.Payload) bool {
 		})
 		payload.Notify()
 	case *actions.DeployOpen:
-		message := messages.Deploy{
+		message := messages.Share{
 			Source: map[string]map[string]string{
 				"main": s.app.Editor.Files(),
 			},
