@@ -111,6 +111,7 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 			v.renderRight(),
 			NewAddFileModal(v.app),
 			NewDeleteFileModal(v.app),
+			NewDeployDoneModal(v.app),
 		),
 	)
 }

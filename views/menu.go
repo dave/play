@@ -277,6 +277,16 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 						),
 						vecty.Text("Share"),
 					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
+							prop.Href(""),
+							event.Click(func(e *vecty.Event) {
+								v.app.Dispatch(&actions.DeployStart{})
+							}).PreventDefault(),
+						),
+						vecty.Text("Deploy"),
+					),
 					elem.Div(
 						vecty.Markup(
 							vecty.Class("dropdown-divider"),
@@ -320,18 +330,6 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 							vecty.Text("Save"),
 						),*/
 
-					/*
-						elem.Anchor(
-							vecty.Markup(
-								vecty.Class("dropdown-item"),
-								prop.Href(""),
-								event.Click(func(e *vecty.Event) {
-									v.app.Dispatch(&actions.DeployStart{})
-								}).PreventDefault(),
-							),
-							vecty.Text("Deploy"),
-						),
-					*/
 				),
 			),
 		),

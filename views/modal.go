@@ -35,6 +35,11 @@ func (m *ModalBuilder) Build() vecty.ComponentOrHTML {
 	}
 	body = append(body, m.body...)
 
+	okDisplay := ""
+	if m.action == nil {
+		okDisplay = "none"
+	}
+
 	return elem.Div(
 		vecty.Markup(
 			prop.ID(m.id),
@@ -88,6 +93,7 @@ func (m *ModalBuilder) Build() vecty.ComponentOrHTML {
 							prop.Type(prop.TypeButton),
 							vecty.Class("btn", "btn-primary"),
 							event.Click(m.action).PreventDefault(),
+							vecty.Style("display", okDisplay),
 						),
 						vecty.Text("OK"),
 					),

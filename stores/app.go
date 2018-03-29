@@ -107,22 +107,34 @@ func requestAnimationFrame() {
 	<-c
 }
 
-func (a *App) SrcHost() string {
-	var url string
-	if strings.HasPrefix(dom.GetWindow().Document().DocumentURI(), "https://") {
-		url = "src.jsgo.io"
-	} else {
-		url = "dev-src.jsgo.io"
+func (a *App) Dev() bool {
+	return !strings.HasPrefix(dom.GetWindow().Document().DocumentURI(), "https://")
+}
+
+func (a *App) Protocol() string {
+	if a.Dev() {
+		return "http"
 	}
-	return url
+	return "https"
+}
+
+func (a *App) IndexHost() string {
+	if a.Dev() {
+		return "dev-index.jsgo.io"
+	}
+	return "jsgo.io"
+}
+
+func (a *App) SrcHost() string {
+	if a.Dev() {
+		return "dev-src.jsgo.io"
+	}
+	return "src.jsgo.io"
 }
 
 func (a *App) PkgHost() string {
-	var url string
-	if strings.HasPrefix(dom.GetWindow().Document().DocumentURI(), "https://") {
-		url = "pkg.jsgo.io"
-	} else {
-		url = "dev-pkg.jsgo.io"
+	if a.Dev() {
+		return "dev-pkg.jsgo.io"
 	}
-	return url
+	return "pkg.jsgo.io"
 }
