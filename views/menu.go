@@ -318,17 +318,20 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 								}).PreventDefault(),
 							),
 							vecty.Text("Save"),
-						),
+						),*/
+
+					/*
 						elem.Anchor(
 							vecty.Markup(
 								vecty.Class("dropdown-item"),
 								prop.Href(""),
 								event.Click(func(e *vecty.Event) {
-									js.Global.Call("alert", "TODO")
+									v.app.Dispatch(&actions.DeployClick{})
 								}).PreventDefault(),
 							),
 							vecty.Text("Deploy"),
-						),*/
+						),
+					*/
 				),
 			),
 		),

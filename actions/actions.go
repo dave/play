@@ -69,6 +69,7 @@ type DeleteFile struct {
 }
 type AddFileClick struct{}
 type DeleteFileClick struct{}
+type DeployClick struct{}
 
 type ImportsChanged struct{}
 
@@ -80,3 +81,8 @@ type ShareStart struct{}
 type ShareOpen struct{}
 type ShareMessage struct{ Message interface{} }
 type ShareClose struct{}
+
+type DeployStart struct{}
+type DeployOpen struct{}
+type DeployMessage struct{ Message interface{} }
+type DeployClose struct{}
