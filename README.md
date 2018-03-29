@@ -6,6 +6,7 @@ https://play.jsgo.io/
 
 ### Features
 * Share your code
+* Deploy to [jsgo.io](https://github.com/dave/jsgo)
 * Load any package
 * Add multiple files
 
