@@ -238,12 +238,10 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 							vecty.Class("dropdown-item"),
 							prop.Href(""),
 							event.Click(func(e *vecty.Event) {
-								v.app.Dispatch(&actions.FormatCode{
-									Then: &actions.UpdateStart{},
-								})
+								v.app.Dispatch(&actions.FormatCode{})
 							}).PreventDefault(),
 						),
-						vecty.Text("Update"),
+						vecty.Text("Format code"),
 					),
 					elem.Div(
 						vecty.Markup(
@@ -255,15 +253,12 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 							vecty.Class("dropdown-item"),
 							prop.Href(""),
 							event.Click(func(e *vecty.Event) {
-								v.app.Dispatch(&actions.FormatCode{})
+								v.app.Dispatch(&actions.FormatCode{
+									Then: &actions.UpdateStart{},
+								})
 							}).PreventDefault(),
 						),
-						vecty.Text("Format code"),
-					),
-					elem.Div(
-						vecty.Markup(
-							vecty.Class("dropdown-divider"),
-						),
+						vecty.Text("Update"),
 					),
 					elem.Anchor(
 						vecty.Markup(
@@ -297,6 +292,33 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 					elem.Anchor(
 						vecty.Markup(
 							vecty.Class("dropdown-item"),
+							prop.Href("#"),
+							event.Click(func(e *vecty.Event) {}).StopPropagation(),
+						),
+						elem.Input(
+							vecty.Markup(
+								prop.Type(prop.TypeCheckbox),
+								vecty.Class("form-check-input", "dropdown-item"),
+								prop.ID("dropdownCheckConsole"),
+								prop.Checked(v.app.Page.Console()),
+								event.Change(func(e *vecty.Event) {
+									v.app.Dispatch(&actions.ConsoleToggleClick{})
+								}),
+								vecty.Style("cursor", "pointer"),
+							),
+						),
+						elem.Label(
+							vecty.Markup(
+								vecty.Class("form-check-label"),
+								prop.For("dropdownCheckConsole"),
+								vecty.Style("cursor", "pointer"),
+							),
+							vecty.Text("Show console"),
+						),
+					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
 							prop.Href(""),
 							event.Click(func(e *vecty.Event) {
 								v.app.Dispatch(&actions.AddFileClick{})
@@ -317,34 +339,6 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 						),
 						vecty.Text("More info"),
 					),
-					/*
-
-						elem.Div(
-							vecty.Markup(
-								vecty.Class("dropdown-divider"),
-							),
-						),
-						elem.Anchor(
-							vecty.Markup(
-								vecty.Class("dropdown-item"),
-								prop.Href(""),
-								event.Click(func(e *vecty.Event) {
-									js.Global.Call("alert", "TODO")
-								}).PreventDefault(),
-							),
-							vecty.Text("Build tags..."),
-						),
-						elem.Anchor(
-							vecty.Markup(
-								vecty.Class("dropdown-item"),
-								prop.Href(""),
-								event.Click(func(e *vecty.Event) {
-									js.Global.Call("alert", "TODO")
-								}).PreventDefault(),
-							),
-							vecty.Text("Save"),
-						),*/
-
 				),
 			),
 		),

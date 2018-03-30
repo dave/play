@@ -14,10 +14,8 @@ type Page struct {
 	vecty.Core
 	app *stores.App
 
-	Sizes []float64 `vecty:"prop"`
-
-	split  *splitter.Split
-	editor *Editor
+	split1, split2 *splitter.Split
+	editor         *Editor
 }
 
 func NewPage(app *stores.App) *Page {
@@ -30,26 +28,41 @@ func NewPage(app *stores.App) *Page {
 func (v *Page) Mount() {
 	v.app.Watch(v, func(done chan struct{}) {
 		defer close(done)
-		v.Sizes = v.app.Editor.Sizes()
-		v.split.SetSizesIfChanged(v.Sizes)
 
-		// Only top-level page should fire vecty.Rerender
-		vecty.Rerender(v)
+		sizes := v.app.Editor.Sizes()
+		if v.split1.Changed(sizes) {
+			v.split1.SetSizes(sizes)
+		}
+
+		if v.app.Page.Console() && !v.split2.Initialised() {
+			v.split2.Init(
+				js.S{"#iframe-holder", "#console-holder"},
+				js.M{
+					"direction": "vertical",
+					"sizes":     []float64{50.0, 50.0},
+				},
+			)
+		} else if !v.app.Page.Console() && v.split2.Initialised() {
+			v.split2.Destroy()
+		}
 	})
 
-	v.split = splitter.New("split")
-	v.split.Init(
+	v.split1 = splitter.New("split")
+	v.split1.Init(
 		js.S{"#left", "#right"},
 		js.M{
-			"sizes": v.Sizes,
+			"sizes": v.app.Editor.Sizes(),
 			"onDragEnd": func() {
 				v.editor.Resize()
 				v.app.Dispatch(&actions.UserChangedSplit{
-					Sizes: v.split.GetSizes(),
+					Sizes: v.split1.GetSizes(),
 				})
 			},
 		},
 	)
+
+	v.split2 = splitter.New("split")
+
 }
 
 func (v *Page) Unmount() {
@@ -86,6 +99,10 @@ const Styles = `
 		cursor: col-resize;
 		background-image:  url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==')
 	}
+	.gutter.gutter-vertical {
+		cursor: row-resize;
+		background-image:  url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=')
+	}
 	.split {
 		-webkit-box-sizing: border-box;
 		-moz-box-sizing: border-box;
@@ -98,6 +115,9 @@ const Styles = `
 		border: 0;
 		height: 100%;
 		width: 100%;
+	}
+	#console {
+		padding:5px;
 	}
 `
 
@@ -113,10 +133,10 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 			),
 			v.renderLeft(),
 			v.renderRight(),
-			NewAddFileModal(v.app),
-			NewDeleteFileModal(v.app),
-			NewDeployDoneModal(v.app),
 		),
+		NewAddFileModal(v.app),
+		NewDeleteFileModal(v.app),
+		NewDeployDoneModal(v.app),
 		elem.Anchor(
 			vecty.Markup(
 				prop.Href("https://github.com/dave/play"),
@@ -155,11 +175,21 @@ func (v *Page) renderRight() *vecty.HTML {
 	return elem.Div(
 		vecty.Markup(
 			prop.ID("right"),
-			vecty.Class("split"),
+			vecty.Class("split", "split-vertical"),
 		),
 		elem.Div(
 			vecty.Markup(
 				prop.ID("iframe-holder"),
+			),
+		),
+		elem.Div(
+			vecty.Markup(
+				prop.ID("console-holder"),
+			),
+			elem.Preformatted(
+				vecty.Markup(
+					prop.ID("console"),
+				),
 			),
 		),
 	)

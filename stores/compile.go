@@ -10,6 +10,7 @@ import (
 	"github.com/dave/jsgo/builderjs"
 	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/compiler/prelude"
+	"github.com/gopherjs/gopherjs/js"
 	"honnef.co/go/js/dom"
 )
 
@@ -21,9 +22,10 @@ func NewCompileStore(app *App) *CompileStore {
 }
 
 type CompileStore struct {
-	app       *App
-	compiling bool
-	compiled  bool
+	app            *App
+	compiling      bool
+	compiled       bool
+	consoleWritten bool
 }
 
 func (s *CompileStore) Compiling() bool {
@@ -86,6 +88,16 @@ func (s *CompileStore) compile() {
 
 	holder.AppendChild(frame)
 	<-c
+
+	console := dom.GetWindow().Document().GetElementByID("console")
+	console.SetInnerHTML("")
+	frame.Get("contentWindow").Set("goPrintToConsole", js.InternalObject(func(b []byte) {
+		console.SetInnerHTML(console.InnerHTML() + string(b))
+		if !s.consoleWritten {
+			s.consoleWritten = true
+			s.app.Dispatch(&actions.ConsoleFirstWrite{})
+		}
+	}))
 
 	if index, ok := s.app.Editor.Files()["index.jsgo.html"]; ok {
 		// has index

@@ -19,6 +19,9 @@ type Dial struct {
 // CompileStart compiles the app and injects the js into the iframe
 type CompileStart struct{}
 
+type ConsoleFirstWrite struct{}
+type ConsoleToggleClick struct{}
+
 // UpdateStart updates the deps from the server and if Run == true, compiles and runs the app
 type UpdateStart struct{ Run bool }
 type UpdateOpen struct{}

@@ -26,6 +26,7 @@ type App struct {
 	Share      *ShareStore
 	Get        *GetStore
 	Deploy     *DeployStore
+	Page       *PageStore
 }
 
 func (a *App) Init() {
@@ -43,6 +44,7 @@ func (a *App) Init() {
 	a.Share = NewShareStore(a)
 	a.Get = NewGetStore(a)
 	a.Deploy = NewDeployStore(a)
+	a.Page = NewPageStore(a)
 
 	a.Dispatcher = flux.NewDispatcher(
 		// Notifier:
@@ -57,6 +59,7 @@ func (a *App) Init() {
 		a.Share,
 		a.Get,
 		a.Deploy,
+		a.Page,
 	)
 }
 
