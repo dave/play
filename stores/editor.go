@@ -1,6 +1,7 @@
 package stores
 
 import (
+	"archive/zip"
 	"sort"
 
 	"errors"
@@ -9,8 +10,12 @@ import (
 
 	"strings"
 
+	"bytes"
+	"io"
+
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
+	"github.com/dave/saver"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -61,6 +66,32 @@ func (s *EditorStore) Filenames() []string {
 
 func (s *EditorStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
+	case *actions.DownloadClick:
+		if len(s.files) == 1 {
+			var name, contents string
+			for n, c := range s.files {
+				name = n
+				contents = c
+			}
+			saver.Save(name, "text/plain", []byte(contents))
+			break
+		}
+
+		buf := &bytes.Buffer{}
+		zw := zip.NewWriter(buf)
+		for name, contents := range s.files {
+			w, err := zw.Create(name)
+			if err != nil {
+				s.app.Fail(err)
+				return true
+			}
+			if _, err := io.Copy(w, strings.NewReader(contents)); err != nil {
+				s.app.Fail(err)
+				return true
+			}
+		}
+		zw.Close()
+		saver.Save("source.zip", "application/zip", buf.Bytes())
 	case *actions.ChangeSplit:
 		s.sizes = a.Sizes
 		payload.Notify()

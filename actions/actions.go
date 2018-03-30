@@ -73,6 +73,8 @@ type DeleteFile struct {
 type AddFileClick struct{}
 type DeleteFileClick struct{}
 
+type DownloadClick struct{}
+
 type ImportsChanged struct{}
 
 type FormatCode struct {

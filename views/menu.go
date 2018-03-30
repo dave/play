@@ -67,7 +67,7 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 					v.app.Dispatch(&actions.AddFileClick{})
 				}).PreventDefault(),
 			),
-			vecty.Text("Add file..."),
+			vecty.Text("Add file"),
 		),
 		elem.Anchor(
 			vecty.Markup(
@@ -77,7 +77,7 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 					v.app.Dispatch(&actions.DeleteFileClick{})
 				}).PreventDefault(),
 			),
-			vecty.Text("Delete file..."),
+			vecty.Text("Delete file"),
 		),
 	)
 	fileDropdownClasses := vecty.Class("nav-item", "dropdown")
@@ -316,6 +316,11 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 							vecty.Text("Show console"),
 						),
 					),
+					elem.Div(
+						vecty.Markup(
+							vecty.Class("dropdown-divider"),
+						),
+					),
 					elem.Anchor(
 						vecty.Markup(
 							vecty.Class("dropdown-item"),
@@ -324,7 +329,17 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 								v.app.Dispatch(&actions.AddFileClick{})
 							}).PreventDefault(),
 						),
-						vecty.Text("Add file..."),
+						vecty.Text("Add file"),
+					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
+							prop.Href(""),
+							event.Click(func(e *vecty.Event) {
+								v.app.Dispatch(&actions.DownloadClick{})
+							}).PreventDefault(),
+						),
+						vecty.Text("Download"),
 					),
 					elem.Div(
 						vecty.Markup(
