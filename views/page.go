@@ -134,6 +134,9 @@ const Styles = `
 		height: 100%;
 		width: 100%;
 	}
+	#console-holder {
+		overflow: auto;
+	}
 	#console {
 		padding:5px;
 	}
