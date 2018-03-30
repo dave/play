@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"github.com/dave/dropper"
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/messages"
 )
@@ -90,3 +91,9 @@ type DeployStart struct{}
 type DeployOpen struct{}
 type DeployMessage struct{ Message interface{} }
 type DeployClose struct{}
+
+type DragEnter struct{}
+type DragLeave struct{}
+type DragDrop struct {
+	Files []dropper.File
+}

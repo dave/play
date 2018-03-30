@@ -1,6 +1,7 @@
 package views
 
 import (
+	"github.com/dave/dropper"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/stores"
 	"github.com/dave/splitter"
@@ -8,6 +9,7 @@ import (
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
 	"github.com/gopherjs/vecty/prop"
+	"honnef.co/go/js/dom"
 )
 
 type Page struct {
@@ -62,6 +64,22 @@ func (v *Page) Mount() {
 	)
 
 	v.split2 = splitter.New("split")
+
+	enter, leave, drop := dropper.Initialise(dom.GetWindow().Document().GetElementByID("left"))
+	go func() {
+		for {
+			select {
+			case <-enter:
+				v.app.Dispatch(&actions.DragEnter{})
+			case <-leave:
+				v.app.Dispatch(&actions.DragLeave{})
+			case files := <-drop:
+				v.app.Dispatch(&actions.DragDrop{
+					Files: files,
+				})
+			}
+		}
+	}()
 
 }
 

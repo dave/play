@@ -13,6 +13,10 @@ import (
 	"bytes"
 	"io"
 
+	"path/filepath"
+
+	"io/ioutil"
+
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
 	"github.com/dave/saver"
@@ -66,6 +70,71 @@ func (s *EditorStore) Filenames() []string {
 
 func (s *EditorStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
+	case *actions.DragEnter:
+		s.app.Log("Drop to upload")
+	case *actions.DragLeave:
+		s.app.Log()
+	case *actions.DragDrop:
+		s.app.Log()
+		// TODO: support multiple packages
+		files := map[string][]byte{}
+		if len(a.Files) == 1 && strings.HasSuffix(a.Files[0].Name(), ".zip") {
+			b, err := ioutil.ReadAll(a.Files[0].Reader())
+			if err != nil {
+				s.app.Fail(err)
+				return true
+			}
+			zr, err := zip.NewReader(bytes.NewReader(b), int64(a.Files[0].Len()))
+			if err != nil {
+				s.app.Fail(err)
+				return true
+			}
+			for _, file := range zr.File {
+				_, name := filepath.Split(file.Name)
+				if files[name] != nil {
+					// two files might have the same name in different dirs
+					continue
+				}
+				fr, err := file.Open()
+				if err != nil {
+					s.app.Fail(err)
+					return true
+				}
+				b, err := ioutil.ReadAll(fr)
+				if err != nil {
+					fr.Close()
+					s.app.Fail(err)
+					return true
+				}
+				fr.Close()
+				files[name] = b
+			}
+		} else {
+			for _, f := range a.Files {
+				if files[f.Name()] != nil {
+					// two files might have the same name in different dirs
+					continue
+				}
+				b, err := ioutil.ReadAll(f.Reader())
+				if err != nil {
+					s.app.Fail(err)
+					return true
+				}
+				files[f.Name()] = b
+			}
+		}
+
+		for name, contents := range files {
+			if !strings.HasSuffix(name, ".go") && !strings.HasSuffix(name, ".jsgo.html") && !strings.HasSuffix(name, ".inc.js") {
+				continue
+			}
+			s.files[name] = string(contents)
+			if len(files) == 1 {
+				s.current = name
+			}
+		}
+		payload.Notify()
+
 	case *actions.DownloadClick:
 		if len(s.files) == 1 {
 			var name, contents string
