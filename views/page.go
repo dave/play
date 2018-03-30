@@ -172,6 +172,10 @@ func (v *Page) renderLeft() *vecty.HTML {
 }
 
 func (v *Page) renderRight() *vecty.HTML {
+	consoleDisplay := ""
+	if !v.app.Page.Console() {
+		consoleDisplay = "none"
+	}
 	return elem.Div(
 		vecty.Markup(
 			prop.ID("right"),
@@ -185,6 +189,7 @@ func (v *Page) renderRight() *vecty.HTML {
 		elem.Div(
 			vecty.Markup(
 				prop.ID("console-holder"),
+				vecty.Style("display", consoleDisplay),
 			),
 			elem.Preformatted(
 				vecty.Markup(

@@ -145,28 +145,14 @@ var (
 		"main.go": `package main
 
 import (
+	"fmt"
 	"honnef.co/go/js/dom"
 )
 
 func main() {
-    body := dom.GetWindow().Document().GetElementsByTagName("body")[0]
-	body.SetInnerHTML("Hello, World! " + randnum())
-}`,
-		"rand.go": `package main
-
-import (
-    "fmt"
-    "time"
-    "math/rand"
-)
-
-func randnum() string {
-    r := rand.Intn(10000)
-    return fmt.Sprint(r)
-}
-
-func init() {
-    rand.Seed(time.Now().UTC().UnixNano())
+	body := dom.GetWindow().Document().GetElementsByTagName("body")[0]
+	body.SetInnerHTML("Hello, HTML!")
+	fmt.Println("Hello, console!")
 }`}
 )
 
