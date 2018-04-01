@@ -7,8 +7,6 @@ import (
 
 	"encoding/json"
 
-	"errors"
-
 	"regexp"
 
 	"github.com/dave/flux"
@@ -21,7 +19,8 @@ import (
 type LocalStore struct {
 	app *App
 
-	local *locstor.DataStore
+	local       *locstor.DataStore
+	initialized bool
 }
 
 func NewLocalStore(app *App) *LocalStore {
@@ -30,6 +29,10 @@ func NewLocalStore(app *App) *LocalStore {
 		local: locstor.NewDataStore(locstor.JSONEncoding),
 	}
 	return s
+}
+
+func (s *LocalStore) Initialized() bool {
+	return s.initialized
 }
 
 func (s *LocalStore) Handle(payload *flux.Payload) bool {
@@ -46,32 +49,54 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 		}
 		s.app.Dispatch(&actions.ChangeSplit{Sizes: sizes})
 
-		location := strings.TrimPrefix(dom.GetWindow().Location().Pathname, "/")
+		location := strings.Trim(dom.GetWindow().Location().Pathname, "/")
 
-		// No hash -> load files from local storage or use default files
+		// No page path -> load files from local storage or use default files
 		if location == "" {
-			var current string
-			var files map[string]string
-			found, err = s.local.Find("files", &files)
+			var currentPackage, currentFile string
+			var source map[string]map[string]string
+			found, err = s.local.Find("source", &source)
 			if err != nil {
 				s.app.Fail(err)
 				return true
 			}
+			if !found {
+				// old format for storing files
+				var files map[string]string
+				found, err = s.local.Find("files", &files)
+				if err != nil {
+					s.app.Fail(err)
+					return true
+				}
+				if found {
+					source = map[string]map[string]string{"main": files}
+				}
+			}
 			if found {
-				// if we found files in local storage, also load the current file
-				if _, err := s.local.Find("current-file", &current); err != nil {
+				// if we found files in local storage, also load the current file and package
+				if _, err := s.local.Find("current-file", &currentFile); err != nil {
+					s.app.Fail(err)
+					return true
+				}
+				if _, err := s.local.Find("current-package", &currentPackage); err != nil {
 					s.app.Fail(err)
 					return true
 				}
 			} else {
-				files = defaultFiles
-				current = defaultFile
+				// if we didn't find source in the local storage, add the default file
+				source = map[string]map[string]string{"main": {"main.go": defaultFile}}
+				currentFile = "main.go"
+				currentPackage = "main"
 			}
-			s.app.Dispatch(&actions.LoadFiles{Files: files, Current: current})
+			s.app.Dispatch(&actions.LoadSource{
+				Source:         source,
+				CurrentFile:    currentFile,
+				CurrentPackage: currentPackage,
+			})
 			break
 		}
 
-		// Sha in hash -> load files from src.jsgo.io json blob
+		// Hash in page path -> load files from src.jsgo.io json blob
 		if shaRegex.MatchString(location) {
 			resp, err := http.Get(fmt.Sprintf("https://%s/%s.json", s.app.SrcHost(), location))
 			if err != nil {
@@ -87,27 +112,21 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 				s.app.Fail(err)
 				return true
 			}
-			files, ok := m.Source["main"]
-			if !ok {
-				s.app.Fail(errors.New("package main not found in source"))
-				return true
-			}
-			s.app.Dispatch(&actions.LoadFiles{Files: files})
+			s.app.Dispatch(&actions.LoadSource{Source: m.Source})
 			break
 		}
 
-		// Package path in hash -> open websocket and load files
-		location = strings.TrimSuffix(location, "/")
+		// Package path in page path -> open websocket and load files
 		s.app.Dispatch(&actions.GetStart{Path: location})
 
 	case *actions.UserChangedSplit:
-		if err := s.local.Save("split-sizes", action.Sizes); err != nil {
+		if err := s.saveSplitSizes(action.Sizes); err != nil {
 			s.app.Fail(err)
 			return true
 		}
 	case *actions.UserChangedText, *actions.FormatCode:
 		payload.Wait(s.app.Editor)
-		if err := s.saveFiles(); err != nil {
+		if err := s.saveSource(); err != nil {
 			s.app.Fail(err)
 			return true
 		}
@@ -117,9 +136,9 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 			s.app.Fail(err)
 			return true
 		}
-	case *actions.AddFile, *actions.DeleteFile:
+	case *actions.UserChangedPackage:
 		payload.Wait(s.app.Editor)
-		if err := s.saveFiles(); err != nil {
+		if err := s.saveCurrentPackage(); err != nil {
 			s.app.Fail(err)
 			return true
 		}
@@ -127,22 +146,54 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 			s.app.Fail(err)
 			return true
 		}
+	case *actions.AddFile, *actions.DeleteFile:
+		payload.Wait(s.app.Source)
+		if err := s.saveSource(); err != nil {
+			s.app.Fail(err)
+			return true
+		}
+		if err := s.saveCurrentFile(); err != nil {
+			s.app.Fail(err)
+			return true
+		}
+	case *actions.AddPackage, *actions.RemovePackage, *actions.DragDrop:
+		payload.Wait(s.app.Editor)
+		if err := s.saveSource(); err != nil {
+			s.app.Fail(err)
+			return true
+		}
+		if err := s.saveCurrentFile(); err != nil {
+			s.app.Fail(err)
+			return true
+		}
+		if err := s.saveCurrentPackage(); err != nil {
+			s.app.Fail(err)
+			return true
+		}
 	}
 	return true
 }
 
-func (s *LocalStore) saveFiles() error {
-	return s.local.Save("files", s.app.Editor.Files())
+func (s *LocalStore) saveSource() error {
+	s.local.Delete("files") // delete old format file storage location
+	return s.local.Save("source", s.app.Source.Source())
 }
+
+func (s *LocalStore) saveCurrentPackage() error {
+	return s.local.Save("current-package", s.app.Editor.CurrentPackage())
+}
+
 func (s *LocalStore) saveCurrentFile() error {
-	return s.local.Save("current-file", s.app.Editor.Current())
+	return s.local.Save("current-file", s.app.Editor.CurrentFile())
+}
+
+func (s *LocalStore) saveSplitSizes(sizes []float64) error {
+	return s.local.Save("split-sizes", sizes)
 }
 
 var (
 	defaultSizes = []float64{50, 50}
-	defaultFile  = "main.go"
-	defaultFiles = map[string]string{
-		"main.go": `package main
+	defaultFile  = `package main
 
 import (
 	"fmt"
@@ -153,7 +204,7 @@ func main() {
 	body := dom.GetWindow().Document().GetElementsByTagName("body")[0]
 	body.SetInnerHTML("Hello, HTML!")
 	fmt.Println("Hello, console!")
-}`}
+}`
 )
 
 var shaRegex = regexp.MustCompile("^[0-9a-f]{40}$")

@@ -14,13 +14,19 @@ func NewGetStore(app *App) *GetStore {
 }
 
 type GetStore struct {
-	app *App
+	app     *App
+	loading bool
+}
+
+func (s *GetStore) Loading() bool {
+	return s.loading
 }
 
 func (s *GetStore) Handle(payload *flux.Payload) bool {
 	switch action := payload.Action.(type) {
 	case *actions.GetStart:
 		s.app.Log("downloading")
+		s.loading = true
 		s.app.Dispatch(&actions.Dial{
 			Url:     defaultUrl(),
 			Open:    func() flux.ActionInterface { return &actions.GetOpen{Path: action.Path} },
@@ -42,10 +48,12 @@ func (s *GetStore) Handle(payload *flux.Payload) bool {
 				s.app.Log(message.Message)
 			}
 		case messages.GetComplete:
-			s.app.Dispatch(&actions.LoadFiles{Files: message.Source[action.Path]})
+			s.app.Dispatch(&actions.LoadSource{Source: message.Source})
 		}
 	case *actions.GetClose:
+		s.loading = false
 		s.app.Log()
+		payload.Notify()
 	}
 	return true
 }

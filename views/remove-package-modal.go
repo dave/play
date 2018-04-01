@@ -8,42 +8,42 @@ import (
 	"github.com/gopherjs/vecty/prop"
 )
 
-type DeleteFileModal struct {
+type RemovePackageModal struct {
 	vecty.Core
 	app *stores.App
 	sel *vecty.HTML
 }
 
-func NewDeleteFileModal(app *stores.App) *DeleteFileModal {
-	v := &DeleteFileModal{
+func NewRemovePackageModal(app *stores.App) *RemovePackageModal {
+	v := &RemovePackageModal{
 		app: app,
 	}
 	return v
 }
 
-func (v *DeleteFileModal) Render() vecty.ComponentOrHTML {
+func (v *RemovePackageModal) Render() vecty.ComponentOrHTML {
 	items := []vecty.MarkupOrChild{
 		vecty.Markup(
 			vecty.Class("form-control"),
-			prop.ID("delete-file-select"),
+			prop.ID("remove-package-select"),
 		),
 	}
-	for _, name := range v.app.Source.Filenames(v.app.Editor.CurrentPackage()) {
+	for _, path := range v.app.Source.Packages() {
 		items = append(items,
 			elem.Option(
 				vecty.Markup(
-					prop.Value(name),
-					vecty.Property("selected", v.app.Editor.CurrentFile() == name),
+					prop.Value(path),
+					vecty.Property("selected", v.app.Editor.CurrentPackage() == path),
 				),
-				vecty.Text(name),
+				vecty.Text(path),
 			),
 		)
 	}
 	v.sel = elem.Select(items...)
 
 	return Modal(
-		"Delete file...",
-		"delete-file-modal",
+		"Remove package...",
+		"remove-package-modal",
 		v.action,
 	).Body(
 		elem.Form(
@@ -53,10 +53,10 @@ func (v *DeleteFileModal) Render() vecty.ComponentOrHTML {
 				),
 				elem.Label(
 					vecty.Markup(
-						vecty.Property("for", "delete-file-select"),
+						vecty.Property("for", "remove-package-select"),
 						vecty.Class("col-form-label"),
 					),
-					vecty.Text("File"),
+					vecty.Text("Package path"),
 				),
 				v.sel,
 			),
@@ -64,11 +64,11 @@ func (v *DeleteFileModal) Render() vecty.ComponentOrHTML {
 	).Build()
 }
 
-func (v *DeleteFileModal) action(*vecty.Event) {
+func (v *RemovePackageModal) action(*vecty.Event) {
 	n := v.sel.Node()
 	i := n.Get("selectedIndex").Int()
 	value := n.Get("options").Index(i).Get("value").String()
-	v.app.Dispatch(&actions.DeleteFile{
-		Name: value,
+	v.app.Dispatch(&actions.RemovePackage{
+		Path: value,
 	})
 }

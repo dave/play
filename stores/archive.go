@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/dave/flux"
+	"github.com/dave/jsgo/builderjs"
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/compiler"
@@ -46,12 +47,31 @@ func NewArchiveStore(app *App) *ArchiveStore {
 	return s
 }
 
-func (s *ArchiveStore) Collect(imports []string) ([]*compiler.Archive, error) {
+func (s *ArchiveStore) Compile(path string) ([]*compiler.Archive, error) {
+	done := make(map[string]bool)
 	var deps []*compiler.Archive
-	paths := make(map[string]bool)
-	var collectDependencies func(path string) error
-	collectDependencies = func(path string) error {
-		if paths[path] {
+	var compile func(path string) error
+	compile = func(path string) error {
+		if done[path] {
+			return nil
+		}
+		if s.app.Source.HasPackage(path) {
+			for _, imp := range s.app.Scanner.Imports(path) {
+				if err := compile(imp); err != nil {
+					return err
+				}
+			}
+			archive, err := builderjs.BuildPackage(
+				path,
+				s.app.Source.Source(),
+				deps,
+				false,
+			)
+			if err != nil {
+				return err
+			}
+			deps = append(deps, archive)
+			done[path] = true
 			return nil
 		}
 		item, ok := s.cache[path]
@@ -59,46 +79,50 @@ func (s *ArchiveStore) Collect(imports []string) ([]*compiler.Archive, error) {
 			return fmt.Errorf("%s not found", path)
 		}
 		for _, imp := range item.Archive.Imports {
-			if err := collectDependencies(imp); err != nil {
+			if err := compile(imp); err != nil {
 				return err
 			}
 		}
 		deps = append(deps, item.Archive)
-		paths[item.Archive.ImportPath] = true
+		done[path] = true
 		return nil
 	}
-	if err := collectDependencies("runtime"); err != nil {
+	if err := compile("runtime"); err != nil {
 		return nil, err
 	}
-	for _, imp := range imports {
-		if err := collectDependencies(imp); err != nil {
-			return nil, err
-		}
+	if err := compile(path); err != nil {
+		return nil, err
 	}
 	return deps, nil
 }
 
 // Fresh is true if current cache matches the previously downloaded archives
-func (s *ArchiveStore) Fresh() bool {
+func (s *ArchiveStore) Fresh(mainPath string) bool {
 	// if index is nil, either the page has just loaded or we're in the middle of an update
 	if s.index == nil {
 		return false
 	}
 
-	// first check that all indexed packages are in the cache at the right versions
+	// first check that all indexed packages are in the cache at the right versions. This would fail
+	// if there was an error while downloading one of the archive files.
 	for path, item := range s.index {
 		cached, ok := s.cache[path]
 		if !ok {
+			fmt.Println("1")
 			return false
 		}
 		if cached.Hash != item.Hash {
+			fmt.Println("2")
 			return false
 		}
 	}
 
-	// then check that all the current imports are found in the index
-	for _, p := range s.app.Scanner.Imports() {
-		if _, ok := s.index[p]; !ok {
+	// then check that all the imports in all packages are found in the index, or in the source
+	for _, path := range s.app.Scanner.Imports(mainPath) {
+		_, inIndex := s.index[path]
+		_, inSource := s.app.Source.Source()[path]
+		if !inIndex && !inSource {
+			fmt.Println("3", path)
 			return false
 		}
 	}
@@ -106,25 +130,30 @@ func (s *ArchiveStore) Fresh() bool {
 	return true
 }
 
-// Cache takes a snapshot of the cache (path -> hash)
 func (s *ArchiveStore) Cache() map[string]CacheItem {
-	cache := map[string]CacheItem{}
-	for k, v := range s.cache {
-		cache[k] = v
-	}
-	return cache
+	return s.cache
 }
 
 func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
 	case *actions.UpdateStart:
+		path, count := s.app.Scanner.Main()
+		if path == "" {
+			if count == 0 {
+				s.app.Fail(errors.New("project has no main package"))
+				return true
+			} else {
+				s.app.Fail(fmt.Errorf("project has %d main packages - select one and retry", count))
+				return true
+			}
+		}
 		s.app.Log("updating")
 		s.index = nil
 		s.app.Dispatch(&actions.Dial{
 			Url:     defaultUrl(),
-			Open:    func() flux.ActionInterface { return &actions.UpdateOpen{} },
+			Open:    func() flux.ActionInterface { return &actions.UpdateOpen{Main: path} },
 			Message: func(m interface{}) flux.ActionInterface { return &actions.UpdateMessage{Message: m} },
-			Close:   func() flux.ActionInterface { return &actions.UpdateClose{Run: a.Run} },
+			Close:   func() flux.ActionInterface { return &actions.UpdateClose{Run: a.Run, Main: path} },
 		})
 		payload.Notify()
 
@@ -134,10 +163,9 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 			hashes[path] = item.Hash
 		}
 		message := messages.Update{
-			Source: map[string]map[string]string{
-				"main": s.app.Editor.Files(),
-			},
-			Cache: hashes,
+			Main:   a.Main,
+			Source: s.app.Source.Source(),
+			Cache:  hashes,
 		}
 		s.app.Dispatch(&actions.Send{
 			Message: message,
@@ -150,9 +178,9 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 			}
 		case messages.Downloading:
 			if message.Message != "" {
-				s.app.Logf(message.Message)
+				s.app.Log(message.Message)
 			} else if message.Done {
-				s.app.Logf("building")
+				s.app.Log("building")
 			}
 		case messages.Archive:
 			if message.Standard {
@@ -200,7 +228,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 
 		s.wait.Wait()
 
-		if !s.Fresh() {
+		if !s.Fresh(a.Main) {
 			s.app.Fail(errors.New("websocket closed but archives not updated"))
 			return true
 		}

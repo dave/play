@@ -3,8 +3,6 @@ package views
 import (
 	"fmt"
 
-	"strings"
-
 	"github.com/dave/play/actions"
 	"github.com/dave/play/stores"
 	"github.com/gopherjs/vecty"
@@ -13,25 +11,25 @@ import (
 	"github.com/gopherjs/vecty/prop"
 )
 
-type AddFileModal struct {
+type AddPackageModal struct {
 	vecty.Core
 	app   *stores.App
 	input *vecty.HTML
 }
 
-func NewAddFileModal(app *stores.App) *AddFileModal {
-	v := &AddFileModal{
+func NewAddPackageModal(app *stores.App) *AddPackageModal {
+	v := &AddPackageModal{
 		app: app,
 	}
 	return v
 }
 
-func (v *AddFileModal) Render() vecty.ComponentOrHTML {
+func (v *AddPackageModal) Render() vecty.ComponentOrHTML {
 	v.input = elem.Input(
 		vecty.Markup(
 			prop.Type(prop.TypeText),
 			vecty.Class("form-control"),
-			prop.ID("add-file-input"),
+			prop.ID("add-package-input"),
 			event.KeyPress(func(ev *vecty.Event) {
 				if ev.Get("keyCode").Int() == 13 {
 					ev.Call("preventDefault")
@@ -41,8 +39,8 @@ func (v *AddFileModal) Render() vecty.ComponentOrHTML {
 		),
 	)
 	return Modal(
-		"Add file...",
-		"add-file-modal",
+		"Add package...",
+		"add-package-modal",
 		v.save,
 	).Body(
 		elem.Form(
@@ -50,10 +48,10 @@ func (v *AddFileModal) Render() vecty.ComponentOrHTML {
 				vecty.Markup(vecty.Class("form-group")),
 				elem.Label(
 					vecty.Markup(
-						vecty.Property("for", "add-file-input"),
+						vecty.Property("for", "add-package-input"),
 						vecty.Class("col-form-label"),
 					),
-					vecty.Text("Filename"),
+					vecty.Text("Package path"),
 				),
 				v.input,
 			),
@@ -61,20 +59,13 @@ func (v *AddFileModal) Render() vecty.ComponentOrHTML {
 	).Build()
 }
 
-func (v *AddFileModal) save(*vecty.Event) {
+func (v *AddPackageModal) save(*vecty.Event) {
 	value := v.input.Node().Get("value").String()
-	if strings.Contains(value, "/") {
-		v.app.Fail(fmt.Errorf("filename %s must not contain a slash", value))
-		return
-	}
-	if !strings.HasSuffix(value, ".go") && !strings.Contains(value, ".") {
-		value = value + ".go"
-	}
-	if v.app.Source.HasFile(v.app.Editor.CurrentPackage(), value) {
+	if v.app.Source.HasPackage(value) {
 		v.app.Fail(fmt.Errorf("%s already exists", value))
 		return
 	}
-	v.app.Dispatch(&actions.AddFile{
-		Name: value,
+	v.app.Dispatch(&actions.AddPackage{
+		Path: value,
 	})
 }

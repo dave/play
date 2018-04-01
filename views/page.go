@@ -8,6 +8,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
+	"github.com/gopherjs/vecty/event"
 	"github.com/gopherjs/vecty/prop"
 	"honnef.co/go/js/dom"
 )
@@ -99,9 +100,14 @@ const Styles = `
 	.menu {
 		min-height: 56px;
 	}
-	.editor {
+	.editor, .empty-panel {
 		flex: 1;
 		width: 100%;
+	}
+	.empty-panel {
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 	.split {
 		height: 100%;
@@ -157,6 +163,8 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 		),
 		NewAddFileModal(v.app),
 		NewDeleteFileModal(v.app),
+		NewAddPackageModal(v.app),
+		NewRemovePackageModal(v.app),
 		NewDeployDoneModal(v.app),
 		elem.Anchor(
 			vecty.Markup(
@@ -182,6 +190,21 @@ func (v *Page) renderLeft() *vecty.HTML {
 
 	v.editor = NewEditor(v.app)
 
+	emptyDisplay := "none"
+	addFileDisplay := "none"
+	addPackageDisplay := "none"
+	loadingDisplay := "none"
+	if v.app.Get.Loading() || !v.app.Editor.Loaded() {
+		emptyDisplay = ""
+		loadingDisplay = ""
+	} else if len(v.app.Source.Packages()) == 0 {
+		emptyDisplay = ""
+		addPackageDisplay = ""
+	} else if len(v.app.Source.Files(v.app.Editor.CurrentPackage())) == 0 {
+		emptyDisplay = ""
+		addFileDisplay = ""
+	}
+
 	return elem.Div(
 		vecty.Markup(
 			prop.ID("left"),
@@ -189,6 +212,40 @@ func (v *Page) renderLeft() *vecty.HTML {
 		),
 		NewMenu(v.app),
 		v.editor,
+		elem.Div(
+			vecty.Markup(
+				vecty.Class("empty-panel"),
+				vecty.Style("display", emptyDisplay),
+			),
+			elem.Span(
+				vecty.Markup(
+					vecty.Style("display", loadingDisplay),
+				),
+				vecty.Text("Loading..."),
+			),
+			elem.Button(
+				vecty.Markup(
+					vecty.Property("type", "button"),
+					vecty.Class("btn", "btn-primary"),
+					event.Click(func(e *vecty.Event) {
+						v.app.Dispatch(&actions.AddFileClick{})
+					}).PreventDefault(),
+					vecty.Style("display", addFileDisplay),
+				),
+				vecty.Text("Add file"),
+			),
+			elem.Button(
+				vecty.Markup(
+					vecty.Property("type", "button"),
+					vecty.Class("btn", "btn-primary"),
+					event.Click(func(e *vecty.Event) {
+						v.app.Dispatch(&actions.AddPackageClick{})
+					}).PreventDefault(),
+					vecty.Style("display", addPackageDisplay),
+				),
+				vecty.Text("Add package"),
+			),
+		),
 	)
 }
 

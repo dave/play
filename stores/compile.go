@@ -2,9 +2,14 @@ package stores
 
 import (
 	"context"
+	"errors"
 
 	"bytes"
 	"text/template"
+
+	"strconv"
+
+	"fmt"
 
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/builderjs"
@@ -39,32 +44,43 @@ func (s *CompileStore) Compiled() bool {
 func (s *CompileStore) Handle(payload *flux.Payload) bool {
 	switch payload.Action.(type) {
 	case *actions.CompileStart:
-		s.compiling = true
-		s.compile()
-		s.compiling = false
+		if err := s.compile(); err != nil {
+			s.app.Fail(err)
+			return true
+		}
 		payload.Notify()
 	}
 	return true
 }
 
-func (s *CompileStore) compile() {
+func (s *CompileStore) compile() error {
+	path, count := s.app.Scanner.Main()
+	if path == "" {
+		if count == 0 {
+			return errors.New("project has no main package")
+		} else {
+			return fmt.Errorf("project has %d main packages - select one and retry", count)
+		}
+	}
+
+	if !s.app.Archive.Fresh(path) {
+		s.app.Dispatch(
+			&actions.UpdateStart{Run: true},
+		)
+		return nil
+	}
+
+	s.compiling = true
+	defer func() {
+		s.compiling = false
+	}()
+
 	s.app.Log("compiling")
 
-	deps, err := s.app.Archive.Collect(s.app.Scanner.Imports())
+	deps, err := s.app.Archive.Compile(path)
 	if err != nil {
-		s.app.Fail(err)
-		return
+		return err
 	}
-	archive, err := builderjs.BuildPackage(
-		s.app.Editor.Files(),
-		deps,
-		false,
-	)
-	if err != nil {
-		s.app.Fail(err)
-		return
-	}
-	deps = append(deps, archive)
 
 	s.app.Log("running")
 
@@ -99,19 +115,17 @@ func (s *CompileStore) compile() {
 		}
 	}))
 
-	if index, ok := s.app.Editor.Files()["index.jsgo.html"]; ok {
+	if index, ok := s.app.Source.Files(path)["index.jsgo.html"]; ok {
 		// has index
 
 		indexTemplate, err := template.New("index").Parse(index)
 		if err != nil {
-			s.app.Fail(err)
-			return
+			return err
 		}
 		data := struct{ Script string }{Script: ""}
 		buf := &bytes.Buffer{}
 		if err := indexTemplate.Execute(buf, data); err != nil {
-			s.app.Fail(err)
-			return
+			return err
 		}
 
 		frameDoc := frame.ContentDocument().Underlying()
@@ -136,17 +150,18 @@ func (s *CompileStore) compile() {
 	for _, d := range deps {
 		code, _, err := builderjs.GetPackageCode(context.Background(), d, false, false)
 		if err != nil {
-			s.app.Fail(err)
-			return
+			return err
 		}
 		scriptDep := doc.CreateElement("script")
 		scriptDep.SetInnerHTML(string(code))
 		head.AppendChild(scriptDep)
 	}
 
+	mainQuoted := strconv.Quote(path)
+
 	scriptInit := doc.CreateElement("script")
 	scriptInit.SetInnerHTML(`
-		$mainPkg = $packages["main"];
+		$mainPkg = $packages[` + mainQuoted + `];
 		$synthesizeMethods();
 		$packages["runtime"].$init();
 		$go($mainPkg.$init, []);
@@ -156,4 +171,5 @@ func (s *CompileStore) compile() {
 
 	s.compiled = true
 	s.app.Log()
+	return nil
 }

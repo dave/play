@@ -25,66 +25,6 @@ func NewMenu(app *stores.App) *Menu {
 }
 
 func (v *Menu) Render() vecty.ComponentOrHTML {
-
-	var fileItems []vecty.MarkupOrChild
-	fileItems = append(fileItems,
-		vecty.Markup(
-			vecty.Class("dropdown-menu"),
-			vecty.Property("aria-labelledby", "fileDropdown"),
-		),
-	)
-	for _, name := range v.app.Editor.Filenames() {
-		name := name
-		fileItems = append(fileItems,
-			elem.Anchor(
-				vecty.Markup(
-					vecty.Class("dropdown-item"),
-					vecty.ClassMap{
-						"disabled": name == v.app.Editor.Current(),
-					},
-					prop.Href(""),
-					event.Click(func(e *vecty.Event) {
-						v.app.Dispatch(&actions.UserChangedFile{
-							Name: name,
-						})
-					}).PreventDefault(),
-				),
-				vecty.Text(name),
-			),
-		)
-	}
-	fileItems = append(fileItems,
-		elem.Div(
-			vecty.Markup(
-				vecty.Class("dropdown-divider"),
-			),
-		),
-		elem.Anchor(
-			vecty.Markup(
-				vecty.Class("dropdown-item"),
-				prop.Href(""),
-				event.Click(func(e *vecty.Event) {
-					v.app.Dispatch(&actions.AddFileClick{})
-				}).PreventDefault(),
-			),
-			vecty.Text("Add file"),
-		),
-		elem.Anchor(
-			vecty.Markup(
-				vecty.Class("dropdown-item"),
-				prop.Href(""),
-				event.Click(func(e *vecty.Event) {
-					v.app.Dispatch(&actions.DeleteFileClick{})
-				}).PreventDefault(),
-			),
-			vecty.Text("Delete file"),
-		),
-	)
-	fileDropdownClasses := vecty.Class("nav-item", "dropdown")
-	if v.app.Editor.Current() == "" || len(v.app.Editor.Files()) <= 1 {
-		fileDropdownClasses = vecty.Class("nav-item", "dropdown", "d-none")
-	}
-
 	return elem.Navigation(
 		vecty.Markup(
 			vecty.Class("menu", "navbar", "navbar-expand", "navbar-light", "bg-light"),
@@ -93,90 +33,8 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 			vecty.Markup(
 				vecty.Class("navbar-nav", "mr-auto"),
 			),
-			/*
-				elem.ListItem(
-					vecty.Markup(
-						vecty.Class("nav-item", "dropdown"),
-					),
-					elem.Anchor(
-						vecty.Markup(
-							prop.ID("packageDropdown"),
-							prop.Href(""),
-							vecty.Class("nav-link", "dropdown-toggle"),
-							vecty.Property("role", "button"),
-							vecty.Data("toggle", "dropdown"),
-							vecty.Property("aria-haspopup", "true"),
-							vecty.Property("aria-expanded", "false"),
-							event.Click(func(ev *vecty.Event) {}).PreventDefault(),
-						),
-						vecty.Text("main"),
-					),
-					elem.Div(
-						vecty.Markup(
-							vecty.Class("dropdown-menu"),
-							vecty.Property("aria-labelledby", "packageDropdown"),
-						),
-						elem.Anchor(
-							vecty.Markup(
-								vecty.Class("dropdown-item"),
-								prop.Href(""),
-								event.Click(func(e *vecty.Event) {}).PreventDefault(),
-							),
-							vecty.Text("Package 1"),
-						),
-						elem.Anchor(
-							vecty.Markup(
-								vecty.Class("dropdown-item"),
-								prop.Href(""),
-								event.Click(func(e *vecty.Event) {}).PreventDefault(),
-							),
-							vecty.Text("Package 2"),
-						),
-						elem.Anchor(
-							vecty.Markup(
-								vecty.Class("dropdown-item"),
-								prop.Href(""),
-								event.Click(func(e *vecty.Event) {}).PreventDefault(),
-							),
-							vecty.Text("Package 3"),
-						),
-						elem.Div(
-							vecty.Markup(
-								vecty.Class("dropdown-divider"),
-							),
-						),
-						elem.Anchor(
-							vecty.Markup(
-								vecty.Class("dropdown-item"),
-								prop.Href(""),
-								event.Click(func(e *vecty.Event) {}).PreventDefault(),
-							),
-							vecty.Text("Add package..."),
-						),
-					),
-				),
-			*/
-			elem.ListItem(
-				vecty.Markup(
-					fileDropdownClasses,
-				),
-				elem.Anchor(
-					vecty.Markup(
-						prop.ID("fileDropdown"),
-						prop.Href(""),
-						vecty.Class("nav-link", "dropdown-toggle"),
-						vecty.Property("role", "button"),
-						vecty.Data("toggle", "dropdown"),
-						vecty.Property("aria-haspopup", "true"),
-						vecty.Property("aria-expanded", "false"),
-						event.Click(func(ev *vecty.Event) {}).PreventDefault(),
-					),
-					vecty.Text(v.app.Editor.Current()),
-				),
-				elem.Div(
-					fileItems...,
-				),
-			),
+			v.renderPackageDropdown(),
+			v.renderFileDropdown(),
 		),
 		elem.UnorderedList(
 			vecty.Markup(
@@ -206,13 +64,9 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 						event.Click(func(e *vecty.Event) {
 							if v.app.Connection.Open() || v.app.Compile.Compiling() {
 								return
-							} else if v.app.Archive.Fresh() {
-								v.app.Dispatch(&actions.FormatCode{
-									Then: &actions.CompileStart{},
-								})
 							} else {
 								v.app.Dispatch(&actions.FormatCode{
-									Then: &actions.UpdateStart{Run: true},
+									Then: &actions.CompileStart{},
 								})
 							}
 						}).PreventDefault(),
@@ -326,16 +180,6 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 							vecty.Class("dropdown-item"),
 							prop.Href(""),
 							event.Click(func(e *vecty.Event) {
-								v.app.Dispatch(&actions.AddFileClick{})
-							}).PreventDefault(),
-						),
-						vecty.Text("Add file"),
-					),
-					elem.Anchor(
-						vecty.Markup(
-							vecty.Class("dropdown-item"),
-							prop.Href(""),
-							event.Click(func(e *vecty.Event) {
 								v.app.Dispatch(&actions.DownloadClick{})
 							}).PreventDefault(),
 						),
@@ -356,6 +200,174 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 					),
 				),
 			),
+		),
+	)
+}
+
+func (v *Menu) renderFileDropdown() *vecty.HTML {
+	var fileItems []vecty.MarkupOrChild
+	fileItems = append(fileItems,
+		vecty.Markup(
+			vecty.Class("dropdown-menu"),
+			vecty.Property("aria-labelledby", "fileDropdown"),
+		),
+	)
+	for _, name := range v.app.Source.Filenames(v.app.Editor.CurrentPackage()) {
+		name := name
+		fileItems = append(fileItems,
+			elem.Anchor(
+				vecty.Markup(
+					vecty.Class("dropdown-item"),
+					vecty.ClassMap{
+						"disabled": name == v.app.Editor.CurrentFile(),
+					},
+					prop.Href(""),
+					event.Click(func(e *vecty.Event) {
+						v.app.Dispatch(&actions.UserChangedFile{
+							Name: name,
+						})
+					}).PreventDefault(),
+				),
+				vecty.Text(name),
+			),
+		)
+	}
+	fileItems = append(fileItems,
+		elem.Div(
+			vecty.Markup(
+				vecty.Class("dropdown-divider"),
+			),
+		),
+		elem.Anchor(
+			vecty.Markup(
+				vecty.Class("dropdown-item"),
+				prop.Href(""),
+				event.Click(func(e *vecty.Event) {
+					v.app.Dispatch(&actions.AddFileClick{})
+				}).PreventDefault(),
+			),
+			vecty.Text("Add file"),
+		),
+		elem.Anchor(
+			vecty.Markup(
+				vecty.Class("dropdown-item"),
+				prop.Href(""),
+				event.Click(func(e *vecty.Event) {
+					v.app.Dispatch(&actions.DeleteFileClick{})
+				}).PreventDefault(),
+			),
+			vecty.Text("Delete file"),
+		),
+	)
+
+	classes := vecty.Class("nav-item", "dropdown", "d-none")
+	if len(v.app.Source.Files(v.app.Editor.CurrentPackage())) > 0 {
+		classes = vecty.Class("nav-item", "dropdown")
+	}
+
+	return elem.ListItem(
+		vecty.Markup(
+			classes,
+		),
+		elem.Anchor(
+			vecty.Markup(
+				prop.ID("fileDropdown"),
+				prop.Href(""),
+				vecty.Class("nav-link", "dropdown-toggle"),
+				vecty.Property("role", "button"),
+				vecty.Data("toggle", "dropdown"),
+				vecty.Property("aria-haspopup", "true"),
+				vecty.Property("aria-expanded", "false"),
+				event.Click(func(ev *vecty.Event) {}).PreventDefault(),
+			),
+			vecty.Text(v.app.Editor.CurrentFile()),
+		),
+		elem.Div(
+			fileItems...,
+		),
+	)
+}
+
+func (v *Menu) renderPackageDropdown() *vecty.HTML {
+	var packageItems []vecty.MarkupOrChild
+	packageItems = append(packageItems,
+		vecty.Markup(
+			vecty.Class("dropdown-menu"),
+			vecty.Property("aria-labelledby", "packageDropdown"),
+		),
+	)
+	for _, path := range v.app.Source.Packages() {
+		path := path
+		packageItems = append(packageItems,
+			elem.Anchor(
+				vecty.Markup(
+					vecty.Class("dropdown-item"),
+					vecty.ClassMap{
+						"disabled": path == v.app.Editor.CurrentPackage(),
+					},
+					prop.Href(""),
+					event.Click(func(e *vecty.Event) {
+						v.app.Dispatch(&actions.UserChangedPackage{
+							Path: path,
+						})
+					}).PreventDefault(),
+				),
+				vecty.Text(v.app.Scanner.DisplayPath(path)),
+			),
+		)
+	}
+	packageItems = append(packageItems,
+		elem.Div(
+			vecty.Markup(
+				vecty.Class("dropdown-divider"),
+			),
+		),
+		elem.Anchor(
+			vecty.Markup(
+				vecty.Class("dropdown-item"),
+				prop.Href(""),
+				event.Click(func(e *vecty.Event) {
+					v.app.Dispatch(&actions.AddPackageClick{})
+				}).PreventDefault(),
+			),
+			vecty.Text("Add package"),
+		),
+		elem.Anchor(
+			vecty.Markup(
+				vecty.Class("dropdown-item"),
+				prop.Href(""),
+				event.Click(func(e *vecty.Event) {
+					v.app.Dispatch(&actions.RemovePackageClick{})
+				}).PreventDefault(),
+			),
+			vecty.Text("Remove package"),
+		),
+	)
+
+	classes := vecty.Class("nav-item", "dropdown", "d-none")
+	if len(v.app.Source.Packages()) > 0 {
+		classes = vecty.Class("nav-item", "dropdown")
+	}
+
+	return elem.ListItem(
+		vecty.Markup(
+			classes,
+		),
+		elem.Anchor(
+			vecty.Markup(
+				prop.ID("packageDropdown"),
+				prop.Href(""),
+				vecty.Class("nav-link", "dropdown-toggle"),
+				vecty.Property("role", "button"),
+				vecty.Data("toggle", "dropdown"),
+				vecty.Property("aria-haspopup", "true"),
+				vecty.Property("aria-expanded", "false"),
+				event.Click(func(ev *vecty.Event) {}).PreventDefault(),
+			),
+			vecty.Text(v.app.Scanner.DisplayName(v.app.Editor.CurrentPackage())),
+		),
+		elem.Div(
+			packageItems...,
 		),
 	)
 }

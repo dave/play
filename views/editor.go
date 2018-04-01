@@ -17,8 +17,6 @@ type Editor struct {
 	vecty.Core
 	app *stores.App
 
-	Text string `vecty:"prop"`
-
 	editor ace.Editor
 }
 
@@ -32,10 +30,9 @@ func NewEditor(app *stores.App) *Editor {
 func (v *Editor) Mount() {
 	v.app.Watch(v, func(done chan struct{}) {
 		defer close(done)
-		v.Text = v.app.Editor.Text()
-		if v.Text != v.editor.GetValue() {
+		if v.app.Source.Current() != v.editor.GetValue() {
 			// only update the editor if the text is changed
-			v.editor.SetValue(v.Text)
+			v.editor.SetValue(v.app.Source.Current())
 			v.editor.ClearSelection()
 			v.editor.MoveCursorTo(0, 0)
 		}
@@ -45,11 +42,6 @@ func (v *Editor) Mount() {
 	v.editor.SetOptions(map[string]interface{}{
 		"mode": "ace/mode/golang",
 	})
-	if v.Text != "" {
-		v.editor.SetValue(v.Text)
-		v.editor.ClearSelection()
-		v.editor.MoveCursorTo(0, 0)
-	}
 
 	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
 		v.Resize()
@@ -59,15 +51,15 @@ func (v *Editor) Mount() {
 		v.Resize()
 	})
 
-	var changes int
+	var last *struct{}
 	v.editor.OnChange(func(ev *js.Object) {
-		changes++
-		before := changes
+		last = &struct{}{}
+		before := last
 		go func() {
 			<-time.After(time.Millisecond * 250)
-			if before == changes {
+			if before == last {
 				value := v.editor.GetValue()
-				if value == v.app.Editor.Files()[v.app.Editor.Current()] {
+				if value == v.app.Source.Current() {
 					// don't fire event if text hasn't changed
 					return
 				}
@@ -88,10 +80,17 @@ func (v *Editor) Unmount() {
 }
 
 func (v *Editor) Render() vecty.ComponentOrHTML {
+
+	editorDisplay := "none"
+	if len(v.app.Source.Packages()) > 0 && len(v.app.Source.Files(v.app.Editor.CurrentPackage())) > 0 {
+		editorDisplay = ""
+	}
+
 	return elem.Div(
 		vecty.Markup(
 			prop.ID("editor"),
 			vecty.Class("editor"),
+			vecty.Style("display", editorDisplay),
 		),
 	)
 }

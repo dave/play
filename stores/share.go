@@ -33,9 +33,7 @@ func (s *ShareStore) Handle(payload *flux.Payload) bool {
 		payload.Notify()
 	case *actions.ShareOpen:
 		message := messages.Share{
-			Source: map[string]map[string]string{
-				"main": s.app.Editor.Files(),
-			},
+			Source: s.app.Source.Source(),
 		}
 		s.app.Dispatch(&actions.Send{
 			Message: message,

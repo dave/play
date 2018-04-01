@@ -1,6 +1,7 @@
 package stores
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/dave/flux"
@@ -17,12 +18,12 @@ func NewDeployStore(app *App) *DeployStore {
 }
 
 type DeployStore struct {
-	app                 *App
-	mainHash, indexHash string
+	app                           *App
+	mainHash, indexHash, mainPath string
 }
 
 func (s *DeployStore) LoaderJs() string {
-	return fmt.Sprintf("%s://%s/%s.%s.js", s.app.Protocol(), s.app.PkgHost(), "main", s.mainHash)
+	return fmt.Sprintf("%s://%s/%s.%s.js", s.app.Protocol(), s.app.PkgHost(), s.mainPath, s.mainHash)
 }
 
 func (s *DeployStore) Index() string {
@@ -32,7 +33,20 @@ func (s *DeployStore) Index() string {
 func (s *DeployStore) Handle(payload *flux.Payload) bool {
 	switch action := payload.Action.(type) {
 	case *actions.DeployStart:
+		path, count := s.app.Scanner.Main()
+		if path == "" {
+			if count == 0 {
+				s.app.Fail(errors.New("project has no main package"))
+				return true
+			} else {
+				s.app.Fail(fmt.Errorf("project has %d main packages - select one and retry", count))
+				return true
+			}
+		}
 		s.app.Log("deploying")
+		s.mainHash = ""
+		s.indexHash = ""
+		s.mainPath = path
 		s.app.Dispatch(&actions.Dial{
 			Url:     defaultUrl(),
 			Open:    func() flux.ActionInterface { return &actions.DeployOpen{} },
@@ -42,9 +56,8 @@ func (s *DeployStore) Handle(payload *flux.Payload) bool {
 		payload.Notify()
 	case *actions.DeployOpen:
 		message := messages.Deploy{
-			Source: map[string]map[string]string{
-				"main": s.app.Editor.Files(),
-			},
+			Main:   s.mainPath,
+			Source: s.app.Source.Source(),
 		}
 		s.app.Dispatch(&actions.Send{
 			Message: message,

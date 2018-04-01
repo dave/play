@@ -22,7 +22,6 @@ type PageStore struct {
 func (s *PageStore) Console() bool {
 	return s.console
 }
-
 func (s *PageStore) Handle(payload *flux.Payload) bool {
 	switch payload.Action.(type) {
 	case *actions.ConsoleToggleClick:
