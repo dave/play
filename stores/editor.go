@@ -72,6 +72,11 @@ func (s *EditorStore) defaultFile(path string) string {
 
 func (s *EditorStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
+	case *actions.DragDrop:
+		payload.Wait(s.app.Source)
+		s.currentPackage = s.defaultPackage()
+		s.currentFiles[s.currentPackage] = s.defaultFile(s.currentPackage)
+		payload.Notify()
 	case *actions.LoadSource:
 		payload.Wait(s.app.Scanner)
 
