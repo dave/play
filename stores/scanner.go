@@ -49,6 +49,16 @@ func (s *ScannerStore) Main() (string, int) {
 	return "", count
 }
 
+func (s *ScannerStore) MainPackages() map[string]bool {
+	m := map[string]bool{}
+	for p, n := range s.names {
+		if n == "main" {
+			m[p] = true
+		}
+	}
+	return m
+}
+
 func (s *ScannerStore) DisplayPath(path string) string {
 	parts := strings.Split(path, "/")
 	guessed := parts[len(parts)-1]
@@ -125,6 +135,9 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 		delete(s.imports, action.Path)
 		delete(s.names, action.Path)
 		payload.Notify()
+	case *actions.AddPackage:
+		payload.Wait(s.app.Source)
+		s.checkForClash()
 	case *actions.LoadSource:
 		payload.Wait(s.app.Source)
 
@@ -141,9 +154,15 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 				}
 			}
 		}
+
+		s.checkForClash()
+
 		if changed {
 			payload.Notify()
 		}
+	case *actions.UpdateClose:
+		payload.Wait(s.app.Archive)
+		s.checkForClash()
 	case *actions.DragDrop:
 		payload.Wait(s.app.Source)
 		var changed bool
@@ -166,6 +185,49 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 		}
 	}
 	return true
+}
+
+func (s *ScannerStore) checkForClash() {
+
+	var incomplete bool
+	clashes := map[string]map[string]bool{}
+
+	var check func(path string)
+	check = func(path string) {
+		imports := map[string]bool{}
+		if s.app.Source.HasPackage(path) {
+			for _, imp := range s.app.Scanner.Imports(path) {
+				imports[imp] = true
+			}
+		} else if ci, ok := s.app.Archive.Cache()[path]; ok {
+			for _, imp := range ci.Archive.Imports {
+				imports[imp] = true
+			}
+		} else {
+			incomplete = true
+		}
+		for imp := range imports {
+			check(imp)
+			if !s.app.Source.HasPackage(path) && s.app.Source.HasPackage(imp) {
+				if clashes[imp] == nil {
+					clashes[imp] = map[string]bool{}
+				}
+				clashes[imp][path] = true
+			}
+		}
+	}
+	for path := range s.MainPackages() {
+		check(path)
+	}
+	if incomplete {
+		s.app.Debug("Clash: incomplete")
+	}
+
+	if len(clashes) > 0 {
+		for imp, packages := range clashes {
+			s.app.Debug("Clash: some pre-compiled packages import", imp, " - ", packages)
+		}
+	}
 }
 
 func (s *ScannerStore) refresh(path, filename, contents string) bool {

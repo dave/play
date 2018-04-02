@@ -94,17 +94,17 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		}
 
 		// Switch to the right package.
-		if a.CurrentPackage != "" {
+		if a.CurrentPackage != "" && s.app.Source.HasPackage(a.CurrentPackage) {
 			s.currentPackage = a.CurrentPackage
 		} else {
 			s.currentPackage = switchPackage
 		}
 
 		// Switch to the right file.
-		if a.CurrentFile != "" {
+		if a.CurrentFile != "" && s.app.Source.HasFile(s.currentPackage, a.CurrentFile) {
 			s.currentFiles[s.currentPackage] = a.CurrentFile
 		} else {
-			s.currentFiles[s.currentPackage] = s.defaultFile(switchPackage)
+			s.currentFiles[s.currentPackage] = s.defaultFile(s.currentPackage)
 		}
 
 		payload.Notify()
@@ -142,9 +142,12 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 		s.currentPackage = a.Path
 		payload.Notify()
 	case *actions.RemovePackage:
-		payload.Wait(s.app.Source)
+		payload.Wait(s.app.Scanner)
 		if s.currentPackage == a.Path {
 			s.currentPackage = s.defaultPackage()
+			if s.currentFiles[s.currentPackage] == "" {
+				s.currentFiles[s.currentPackage] = s.defaultFile(s.currentPackage)
+			}
 			payload.Notify()
 		}
 	}

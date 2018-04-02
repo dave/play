@@ -132,17 +132,13 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 		}
 	case *actions.UserChangedFile:
 		payload.Wait(s.app.Editor)
-		if err := s.saveCurrentFile(); err != nil {
+		if err := s.saveSource(); err != nil {
 			s.app.Fail(err)
 			return true
 		}
 	case *actions.UserChangedPackage:
 		payload.Wait(s.app.Editor)
-		if err := s.saveCurrentPackage(); err != nil {
-			s.app.Fail(err)
-			return true
-		}
-		if err := s.saveCurrentFile(); err != nil {
+		if err := s.saveSource(); err != nil {
 			s.app.Fail(err)
 			return true
 		}
@@ -152,21 +148,9 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 			s.app.Fail(err)
 			return true
 		}
-		if err := s.saveCurrentFile(); err != nil {
-			s.app.Fail(err)
-			return true
-		}
 	case *actions.AddPackage, *actions.RemovePackage, *actions.DragDrop:
 		payload.Wait(s.app.Editor)
 		if err := s.saveSource(); err != nil {
-			s.app.Fail(err)
-			return true
-		}
-		if err := s.saveCurrentFile(); err != nil {
-			s.app.Fail(err)
-			return true
-		}
-		if err := s.saveCurrentPackage(); err != nil {
 			s.app.Fail(err)
 			return true
 		}
@@ -176,15 +160,16 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 
 func (s *LocalStore) saveSource() error {
 	s.local.Delete("files") // delete old format file storage location
-	return s.local.Save("source", s.app.Source.Source())
-}
-
-func (s *LocalStore) saveCurrentPackage() error {
-	return s.local.Save("current-package", s.app.Editor.CurrentPackage())
-}
-
-func (s *LocalStore) saveCurrentFile() error {
-	return s.local.Save("current-file", s.app.Editor.CurrentFile())
+	if err := s.local.Save("source", s.app.Source.Source()); err != nil {
+		return err
+	}
+	if err := s.local.Save("current-package", s.app.Editor.CurrentPackage()); err != nil {
+		return err
+	}
+	if err := s.local.Save("current-file", s.app.Editor.CurrentFile()); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *LocalStore) saveSplitSizes(sizes []float64) error {
