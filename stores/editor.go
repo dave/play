@@ -84,18 +84,24 @@ func (s *EditorStore) Handle(payload *flux.Payload) bool {
 			s.loaded = true
 		}()
 
+		var firstPackage string
+		for path := range a.Source {
+			firstPackage = path
+			break
+		}
+
 		// Switch to the right package.
 		if a.CurrentPackage != "" {
 			s.currentPackage = a.CurrentPackage
 		} else {
-			s.currentPackage = s.defaultPackage()
+			s.currentPackage = firstPackage
 		}
 
 		// Switch to the right file.
 		if a.CurrentFile != "" {
 			s.currentFiles[s.currentPackage] = a.CurrentFile
 		} else {
-			s.currentFiles[s.currentPackage] = s.defaultFile(s.currentPackage)
+			s.currentFiles[s.currentPackage] = s.defaultFile(firstPackage)
 		}
 
 		payload.Notify()

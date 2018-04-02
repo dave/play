@@ -27,7 +27,6 @@ type ScannerStore struct {
 	app     *App
 	imports map[string]map[string][]string
 	names   map[string]string
-	main    string
 }
 
 // Main is the path of the main package
@@ -100,6 +99,23 @@ func (s *ScannerStore) AllImports() map[string]bool {
 	return m
 }
 
+func (s *ScannerStore) AllImportsOrdered() []string {
+	var a []string
+	m := map[string]bool{}
+	for _, imps := range s.imports {
+		for _, file := range imps {
+			for _, imp := range file {
+				if !m[imp] {
+					m[imp] = true
+					a = append(a, imp)
+				}
+			}
+		}
+	}
+	sort.Strings(a)
+	return a
+}
+
 func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 	switch action := payload.Action.(type) {
 	case *actions.DeleteFile:
@@ -108,27 +124,17 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 	case *actions.RemovePackage:
 		delete(s.imports, action.Path)
 		delete(s.names, action.Path)
-		if s.main == action.Path {
-			// If we delete the main package, try to find another main package
-			s.main = ""
-			for path, name := range s.names {
-				if name == "main" {
-					s.main = path
-					break
-				}
-			}
-		}
 		payload.Notify()
 	case *actions.LoadSource:
 		payload.Wait(s.app.Source)
 
-		// source is replaced, so clear all imports
-		s.imports = map[string]map[string][]string{}
-		s.names = map[string]string{}
-		s.main = ""
+		for path := range action.Source {
+			delete(s.imports, path)
+			delete(s.names, path)
+		}
 
 		var changed bool
-		for path, files := range s.app.Source.Source() {
+		for path, files := range action.Source {
 			for name, contents := range files {
 				if s.refresh(path, name, contents) {
 					changed = true
@@ -163,22 +169,22 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 }
 
 func (s *ScannerStore) refresh(path, filename, contents string) bool {
+
+	if strings.HasSuffix(filename, "_test.go") {
+		return false
+	}
+
 	fset := token.NewFileSet()
 
 	// ignore errors
 	f, _ := parser.ParseFile(fset, filename, contents, parser.ImportsOnly)
 
-	name := strings.TrimSuffix(f.Name.Name, "_test")
+	name := f.Name.Name
+
 	var nameChanged bool
 	if s.names[path] != name {
 		nameChanged = true
 		s.names[path] = name
-	}
-
-	var mainChanged bool
-	if name == "main" && s.main != path {
-		mainChanged = true
-		s.main = path
 	}
 
 	var imports []string
@@ -198,7 +204,7 @@ func (s *ScannerStore) refresh(path, filename, contents string) bool {
 		s.imports[path][filename] = imports
 	}
 
-	return nameChanged || importsChanged || mainChanged
+	return nameChanged || importsChanged
 }
 
 func (s *ScannerStore) changed(imports, compare []string) bool {

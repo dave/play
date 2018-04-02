@@ -166,6 +166,7 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 		NewAddPackageModal(v.app),
 		NewRemovePackageModal(v.app),
 		NewDeployDoneModal(v.app),
+		NewLoadPackageModal(v.app),
 		elem.Anchor(
 			vecty.Markup(
 				prop.Href("https://github.com/dave/play"),
@@ -194,7 +195,7 @@ func (v *Page) renderLeft() *vecty.HTML {
 	addFileDisplay := "none"
 	addPackageDisplay := "none"
 	loadingDisplay := "none"
-	if v.app.Get.Loading() || !v.app.Editor.Loaded() {
+	if !v.app.Editor.Loaded() {
 		emptyDisplay = ""
 		loadingDisplay = ""
 	} else if len(v.app.Source.Packages()) == 0 {

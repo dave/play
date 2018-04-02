@@ -263,6 +263,9 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 		js.Global.Call("$", "#add-package-input").Call("focus")
 		js.Global.Call("$", "#add-package-input").Call("val", "")
 		payload.Notify()
+	case *actions.LoadPackageClick:
+		js.Global.Call("$", "#load-package-modal").Call("modal", "show")
+		payload.Notify()
 	case *actions.AddFile:
 		js.Global.Call("$", "#add-file-modal").Call("modal", "hide")
 		p := s.app.Editor.CurrentPackage()
@@ -317,7 +320,11 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 		delete(s.source, a.Path)
 		payload.Notify()
 	case *actions.LoadSource:
-		s.source = a.Source
+		for path, files := range a.Source {
+			if s.source[path] == nil {
+				s.source[path] = files
+			}
+		}
 		payload.Notify()
 	case *actions.FormatCode:
 		p := s.app.Editor.CurrentPackage()

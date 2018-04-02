@@ -35,6 +35,7 @@ type AddFileClick struct{}
 type AddPackageClick struct{}
 type DeleteFileClick struct{}
 type RemovePackageClick struct{}
+type LoadPackageClick struct{}
 
 type DownloadClick struct{}
 

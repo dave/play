@@ -337,6 +337,16 @@ func (v *Menu) renderPackageDropdown() *vecty.HTML {
 				vecty.Class("dropdown-item"),
 				prop.Href(""),
 				event.Click(func(e *vecty.Event) {
+					v.app.Dispatch(&actions.LoadPackageClick{})
+				}).PreventDefault(),
+			),
+			vecty.Text("Load package"),
+		),
+		elem.Anchor(
+			vecty.Markup(
+				vecty.Class("dropdown-item"),
+				prop.Href(""),
+				event.Click(func(e *vecty.Event) {
 					v.app.Dispatch(&actions.RemovePackageClick{})
 				}).PreventDefault(),
 			),
