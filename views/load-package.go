@@ -139,6 +139,7 @@ func (v *LoadPackageModal) Render() vecty.ComponentOrHTML {
 					vecty.Markup(
 						prop.Href(""),
 						event.Click(func(e *vecty.Event) {
+							v.app.Dispatch(&actions.ModalClose{Modal: models.LoadPackageModal})
 							v.app.Dispatch(&actions.UpdateStart{})
 						}).PreventDefault(),
 					),
