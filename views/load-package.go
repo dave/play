@@ -134,7 +134,17 @@ func (v *LoadPackageModal) Render() vecty.ComponentOrHTML {
 						),
 					),
 				),
-				vecty.Text("Dependencies are not fully loaded. Update to load."),
+				vecty.Text("Dependencies are not fully loaded. "),
+				elem.Anchor(
+					vecty.Markup(
+						prop.Href(""),
+						event.Click(func(e *vecty.Event) {
+							v.app.Dispatch(&actions.UpdateStart{})
+						}).PreventDefault(),
+					),
+					vecty.Text("Update"),
+				),
+				vecty.Text(" to load."),
 			),
 		),
 	).Build()
