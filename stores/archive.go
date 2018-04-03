@@ -101,6 +101,15 @@ func (s *ArchiveStore) Compile(path string) ([]*compiler.Archive, error) {
 	return deps, nil
 }
 
+func (s *ArchiveStore) AllFresh() bool {
+	for path := range s.app.Scanner.MainPackages() {
+		if !s.Fresh(path) {
+			return false
+		}
+	}
+	return true
+}
+
 // Fresh is true if current cache matches the previously downloaded archives
 func (s *ArchiveStore) Fresh(mainPath string) bool {
 	// if index is nil, either the page has just loaded or we're in the middle of an update
@@ -113,11 +122,9 @@ func (s *ArchiveStore) Fresh(mainPath string) bool {
 	for path, item := range s.index {
 		cached, ok := s.cache[path]
 		if !ok {
-			fmt.Println("1")
 			return false
 		}
 		if cached.Hash != item.Hash {
-			fmt.Println("2")
 			return false
 		}
 	}
@@ -127,7 +134,6 @@ func (s *ArchiveStore) Fresh(mainPath string) bool {
 		_, inIndex := s.index[path]
 		_, inSource := s.app.Source.Source()[path]
 		if !inIndex && !inSource {
-			fmt.Println("3", path)
 			return false
 		}
 	}

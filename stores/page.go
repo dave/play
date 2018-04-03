@@ -16,10 +16,15 @@ func NewPageStore(app *App) *PageStore {
 }
 
 type PageStore struct {
-	app      *App
-	console  bool
-	autoOpen bool
-	modals   map[models.Modal]bool
+	app         *App
+	console     bool
+	autoOpen    bool
+	modals      map[models.Modal]bool
+	showAllDeps bool // show all dependencies in the load package modal
+}
+
+func (s *PageStore) ShowAllDeps() bool {
+	return s.showAllDeps
 }
 
 func (s *PageStore) ModalOpen(modal models.Modal) bool {
@@ -47,6 +52,9 @@ func (s *PageStore) Handle(payload *flux.Payload) bool {
 			s.autoOpen = false
 			payload.Notify()
 		}
+	case *actions.ShowAllDepsChange:
+		s.showAllDeps = a.State
+		payload.Notify()
 	}
 	return true
 }

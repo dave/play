@@ -12,6 +12,8 @@ type Load struct{}
 type ConsoleFirstWrite struct{}
 type ConsoleToggleClick struct{}
 
+type ShowAllDepsChange struct{ State bool }
+
 type ChangeSplit struct{ Sizes []float64 }
 type ChangeFile struct {
 	Path string
