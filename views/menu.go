@@ -2,6 +2,7 @@ package views
 
 import (
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
@@ -35,6 +36,39 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 			),
 			v.renderPackageDropdown(),
 			v.renderFileDropdown(),
+			/*
+				elem.ListItem(
+					vecty.Markup(
+						vecty.Class("nav-item"),
+					),
+					elem.Anchor(
+						vecty.Markup(
+							prop.Href(""),
+							vecty.Class("nav-link", "octicon"),
+							event.Click(func(e *vecty.Event) {
+								v.app.Dispatch(&actions.ModalOpen{Modal: models.ClashWarningModal})
+							}).PreventDefault(),
+						),
+						vecty.Tag(
+							"svg",
+							vecty.Markup(
+								vecty.Namespace("http://www.w3.org/2000/svg"),
+								vecty.Attribute("width", "14"),
+								vecty.Attribute("height", "16"),
+								vecty.Attribute("viewBox", "0 0 14 16"),
+							),
+							vecty.Tag(
+								"path",
+								vecty.Markup(
+									vecty.Namespace("http://www.w3.org/2000/svg"),
+									vecty.Attribute("fill-rule", "evenodd"),
+									vecty.Attribute("d", "M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"),
+								),
+							),
+						),
+					),
+				),
+			*/
 		),
 		elem.UnorderedList(
 			vecty.Markup(
@@ -243,7 +277,7 @@ func (v *Menu) renderFileDropdown() *vecty.HTML {
 				vecty.Class("dropdown-item"),
 				prop.Href(""),
 				event.Click(func(e *vecty.Event) {
-					v.app.Dispatch(&actions.AddFileClick{})
+					v.app.Dispatch(&actions.ModalOpen{Modal: models.AddFileModal})
 				}).PreventDefault(),
 			),
 			vecty.Text("Add file"),
@@ -253,7 +287,7 @@ func (v *Menu) renderFileDropdown() *vecty.HTML {
 				vecty.Class("dropdown-item"),
 				prop.Href(""),
 				event.Click(func(e *vecty.Event) {
-					v.app.Dispatch(&actions.DeleteFileClick{})
+					v.app.Dispatch(&actions.ModalOpen{Modal: models.DeleteFileModal})
 				}).PreventDefault(),
 			),
 			vecty.Text("Delete file"),
@@ -327,7 +361,7 @@ func (v *Menu) renderPackageDropdown() *vecty.HTML {
 				vecty.Class("dropdown-item"),
 				prop.Href(""),
 				event.Click(func(e *vecty.Event) {
-					v.app.Dispatch(&actions.AddPackageClick{})
+					v.app.Dispatch(&actions.ModalOpen{Modal: models.AddPackageModal})
 				}).PreventDefault(),
 			),
 			vecty.Text("Add package"),
@@ -337,7 +371,7 @@ func (v *Menu) renderPackageDropdown() *vecty.HTML {
 				vecty.Class("dropdown-item"),
 				prop.Href(""),
 				event.Click(func(e *vecty.Event) {
-					v.app.Dispatch(&actions.LoadPackageClick{})
+					v.app.Dispatch(&actions.ModalOpen{Modal: models.LoadPackageModal})
 				}).PreventDefault(),
 			),
 			vecty.Text("Load package"),
@@ -347,7 +381,7 @@ func (v *Menu) renderPackageDropdown() *vecty.HTML {
 				vecty.Class("dropdown-item"),
 				prop.Href(""),
 				event.Click(func(e *vecty.Event) {
-					v.app.Dispatch(&actions.RemovePackageClick{})
+					v.app.Dispatch(&actions.ModalOpen{Modal: models.RemovePackageModal})
 				}).PreventDefault(),
 			),
 			vecty.Text("Remove package"),

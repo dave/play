@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
 	"github.com/gopherjs/vecty/event"
@@ -14,14 +16,21 @@ import (
 )
 
 type AddFileModal struct {
-	vecty.Core
-	app   *stores.App
+	*Modal
 	input *vecty.HTML
 }
 
 func NewAddFileModal(app *stores.App) *AddFileModal {
-	v := &AddFileModal{
-		app: app,
+	v := &AddFileModal{}
+	v.Modal = &Modal{
+		app:    app,
+		id:     models.AddFileModal,
+		title:  "Add file...",
+		action: v.save,
+		shown: func() {
+			js.Global.Call("$", "#add-file-input").Call("focus")
+			js.Global.Call("$", "#add-file-input").Call("val", "")
+		},
 	}
 	return v
 }
@@ -40,11 +49,7 @@ func (v *AddFileModal) Render() vecty.ComponentOrHTML {
 			}),
 		),
 	)
-	return Modal(
-		"Add file...",
-		"add-file-modal",
-		v.save,
-	).Body(
+	return v.Body(
 		elem.Form(
 			elem.Div(
 				vecty.Markup(vecty.Class("form-group")),
@@ -74,7 +79,6 @@ func (v *AddFileModal) save(*vecty.Event) {
 		v.app.Fail(fmt.Errorf("%s already exists", value))
 		return
 	}
-	v.app.Dispatch(&actions.AddFile{
-		Name: value,
-	})
+	v.app.Dispatch(&actions.ModalClose{Modal: models.AddFileModal})
+	v.app.Dispatch(&actions.AddFile{Name: value})
 }

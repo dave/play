@@ -4,6 +4,7 @@ import (
 	"github.com/dave/dropper"
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/messages"
+	"github.com/dave/play/models"
 )
 
 type Load struct{}
@@ -31,11 +32,8 @@ type UserChangedText struct {
 type UserChangedFile struct{ Name string }
 type UserChangedPackage struct{ Path string }
 
-type AddFileClick struct{}
-type AddPackageClick struct{}
-type DeleteFileClick struct{}
-type RemovePackageClick struct{}
-type LoadPackageClick struct{}
+type ModalOpen struct{ Modal models.Modal }
+type ModalClose struct{ Modal models.Modal }
 
 type DownloadClick struct{}
 

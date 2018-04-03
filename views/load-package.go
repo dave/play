@@ -2,6 +2,7 @@ package views
 
 import (
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
@@ -9,14 +10,17 @@ import (
 )
 
 type LoadPackageModal struct {
-	vecty.Core
-	app  *stores.App
+	*Modal
 	imps *vecty.HTML
 }
 
 func NewLoadPackageModal(app *stores.App) *LoadPackageModal {
-	v := &LoadPackageModal{
-		app: app,
+	v := &LoadPackageModal{}
+	v.Modal = &Modal{
+		app:    app,
+		id:     models.LoadPackageModal,
+		title:  "Load package...",
+		action: v.action,
 	}
 	return v
 }
@@ -40,11 +44,7 @@ func (v *LoadPackageModal) Render() vecty.ComponentOrHTML {
 	}
 	v.imps = elem.Select(items...)
 
-	return Modal(
-		"Load package...",
-		"load-package-modal",
-		v.action,
-	).Body(
+	return v.Body(
 		elem.Form(
 			elem.Div(
 				vecty.Markup(
@@ -67,7 +67,6 @@ func (v *LoadPackageModal) action(*vecty.Event) {
 	n := v.imps.Node()
 	i := n.Get("selectedIndex").Int()
 	value := n.Get("options").Index(i).Get("value").String()
-	v.app.Dispatch(&actions.GetStart{
-		Path: value,
-	})
+	v.app.Dispatch(&actions.ModalClose{Modal: models.LoadPackageModal})
+	v.app.Dispatch(&actions.GetStart{Path: value})
 }

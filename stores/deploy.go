@@ -7,7 +7,7 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/actions"
-	"github.com/gopherjs/gopherjs/js"
+	"github.com/dave/play/models"
 )
 
 func NewDeployStore(app *App) *DeployStore {
@@ -77,7 +77,7 @@ func (s *DeployStore) Handle(payload *flux.Payload) bool {
 		case messages.DeployComplete:
 			s.mainHash = message.Main
 			s.indexHash = message.Index
-			js.Global.Call("$", "#deploy-done-modal").Call("modal", "show")
+			s.app.Dispatch(&actions.ModalOpen{Modal: models.DeployDoneModal})
 			s.app.Log("deployed")
 			payload.Notify()
 		}

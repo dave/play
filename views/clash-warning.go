@@ -1,6 +1,7 @@
 package views
 
 import (
+	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
@@ -8,30 +9,30 @@ import (
 	"github.com/gopherjs/vecty/prop"
 )
 
-type DeployDoneModal struct {
-	vecty.Core
-	app *stores.App
+type ClashWarningModal struct {
+	*Modal
 }
 
-func NewDeployDoneModal(app *stores.App) *DeployDoneModal {
-	v := &DeployDoneModal{
-		app: app,
+func NewClashWarningModal(app *stores.App) *ClashWarningModal {
+	v := &ClashWarningModal{
+		&Modal{
+			app:    app,
+			id:     models.ClashWarningModal,
+			title:  "Package clash...",
+			action: nil,
+		},
 	}
 	return v
 }
 
-func (v *DeployDoneModal) Render() vecty.ComponentOrHTML {
-	return Modal(
-		"Deployed...",
-		"deploy-done-modal",
-		nil,
-	).Body(
+func (v *ClashWarningModal) Render() vecty.ComponentOrHTML {
+	return v.Body(
 		elem.Form(
 			elem.Div(
 				vecty.Markup(vecty.Class("form-group")),
 				elem.Label(
 					vecty.Markup(
-						vecty.Property("for", "deploy-done-modal"),
+						vecty.Property("for", string(v.id)),
 						vecty.Class("col-form-label"),
 					),
 					vecty.Text("Link"),
@@ -40,7 +41,7 @@ func (v *DeployDoneModal) Render() vecty.ComponentOrHTML {
 					vecty.Markup(
 						prop.Type(prop.TypeText),
 						vecty.Class("form-control"),
-						prop.ID("deploy-done-input-link"),
+						prop.ID("clash-warning-input-link"),
 						event.Focus(func(ev *vecty.Event) {
 							ev.Target.Call("select")
 						}).PreventDefault(),
@@ -62,7 +63,7 @@ func (v *DeployDoneModal) Render() vecty.ComponentOrHTML {
 				),
 				elem.Label(
 					vecty.Markup(
-						vecty.Property("for", "deploy-done-modal"),
+						vecty.Property("for", string(v.id)),
 						vecty.Class("col-form-label"),
 					),
 					vecty.Text("Loader JS"),
@@ -71,7 +72,7 @@ func (v *DeployDoneModal) Render() vecty.ComponentOrHTML {
 					vecty.Markup(
 						prop.Type(prop.TypeText),
 						vecty.Class("form-control"),
-						prop.ID("deploy-done-input-loader"),
+						prop.ID("clash-warning-input-loader"),
 						event.Focus(func(ev *vecty.Event) {
 							ev.Target.Call("select")
 						}).PreventDefault(),

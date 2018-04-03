@@ -1,32 +1,69 @@
 package views
 
 import (
+	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
+	"github.com/dave/play/stores"
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
 	"github.com/gopherjs/vecty/event"
 	"github.com/gopherjs/vecty/prop"
 )
 
-type ModalBuilder struct {
-	id, title string
-	action    func(*vecty.Event)
-	body      []vecty.MarkupOrChild
+type Modal struct {
+	vecty.Core
+	app    *stores.App
+	id     models.Modal
+	title  string
+	action func(*vecty.Event)
+	body   []vecty.MarkupOrChild // This should be set on every Render
+	shown  func()
+	hidden func()
 }
 
-func Modal(title, id string, action func(*vecty.Event)) *ModalBuilder {
-	return &ModalBuilder{
-		id:     id,
-		title:  title,
-		action: action,
-	}
+func (m *Modal) Mount() {
+	m.app.Watch(m, func(done chan struct{}) {
+		defer close(done)
+		modalIsVisible := js.Global.Call("$", "#"+m.id).Call("hasClass", "show").Bool()
+		shouldBeVisible := m.app.Page.ModalOpen(m.id)
+		if modalIsVisible != shouldBeVisible {
+			if shouldBeVisible {
+				js.Global.Call("$", "#"+m.id).Call("modal", "show")
+			} else {
+				js.Global.Call("$", "#"+m.id).Call("modal", "hide")
+			}
+		}
+	})
+	js.Global.Call("$", "#"+m.id).Call("on", "shown.bs.modal", func() {
+		if !m.app.Page.ModalOpen(m.id) {
+			m.app.Dispatch(&actions.ModalOpen{Modal: m.id})
+		}
+		if m.shown != nil {
+			m.shown()
+		}
+	})
+	js.Global.Call("$", "#"+m.id).Call("on", "hidden.bs.modal", func() {
+		if m.app.Page.ModalOpen(m.id) {
+			m.app.Dispatch(&actions.ModalClose{Modal: m.id})
+		}
+		if m.hidden != nil {
+			m.hidden()
+		}
+	})
 }
 
-func (m *ModalBuilder) Body(body ...vecty.MarkupOrChild) *ModalBuilder {
+func (m *Modal) Unmount() {
+	m.app.Delete(m)
+	js.Global.Call("$", "#"+m.id).Call("unbind")
+}
+
+func (m *Modal) Body(body ...vecty.MarkupOrChild) *Modal {
 	m.body = body
 	return m
 }
 
-func (m *ModalBuilder) Build() vecty.ComponentOrHTML {
+func (m *Modal) Build() vecty.ComponentOrHTML {
 
 	body := []vecty.MarkupOrChild{
 		vecty.Markup(
@@ -42,7 +79,7 @@ func (m *ModalBuilder) Build() vecty.ComponentOrHTML {
 
 	return elem.Div(
 		vecty.Markup(
-			prop.ID(m.id),
+			prop.ID(string(m.id)),
 			vecty.Class("modal"),
 			vecty.Property("tabindex", "-1"),
 			vecty.Property("role", "dialog"),

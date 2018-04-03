@@ -2,6 +2,7 @@ package views
 
 import (
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
@@ -9,14 +10,17 @@ import (
 )
 
 type RemovePackageModal struct {
-	vecty.Core
-	app *stores.App
+	*Modal
 	sel *vecty.HTML
 }
 
 func NewRemovePackageModal(app *stores.App) *RemovePackageModal {
-	v := &RemovePackageModal{
-		app: app,
+	v := &RemovePackageModal{}
+	v.Modal = &Modal{
+		app:    app,
+		id:     models.RemovePackageModal,
+		title:  "Remove package...",
+		action: v.action,
 	}
 	return v
 }
@@ -41,11 +45,7 @@ func (v *RemovePackageModal) Render() vecty.ComponentOrHTML {
 	}
 	v.sel = elem.Select(items...)
 
-	return Modal(
-		"Remove package...",
-		"remove-package-modal",
-		v.action,
-	).Body(
+	return v.Body(
 		elem.Form(
 			elem.Div(
 				vecty.Markup(
@@ -68,7 +68,6 @@ func (v *RemovePackageModal) action(*vecty.Event) {
 	n := v.sel.Node()
 	i := n.Get("selectedIndex").Int()
 	value := n.Get("options").Index(i).Get("value").String()
-	v.app.Dispatch(&actions.RemovePackage{
-		Path: value,
-	})
+	v.app.Dispatch(&actions.ModalClose{Modal: models.RemovePackageModal})
+	v.app.Dispatch(&actions.RemovePackage{Path: value})
 }

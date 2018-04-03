@@ -4,7 +4,6 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/actions"
-	"github.com/gopherjs/gopherjs/js"
 )
 
 func NewGetStore(app *App) *GetStore {
@@ -22,7 +21,6 @@ func (s *GetStore) Handle(payload *flux.Payload) bool {
 	switch action := payload.Action.(type) {
 	case *actions.GetStart:
 		s.app.Log("downloading")
-		js.Global.Call("$", "#load-package-modal").Call("modal", "hide")
 		s.app.Dispatch(&actions.Dial{
 			Url:     defaultUrl(),
 			Open:    func() flux.ActionInterface { return &actions.GetOpen{Path: action.Path} },

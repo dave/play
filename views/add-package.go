@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
 	"github.com/gopherjs/vecty/event"
@@ -12,14 +14,21 @@ import (
 )
 
 type AddPackageModal struct {
-	vecty.Core
-	app   *stores.App
+	*Modal
 	input *vecty.HTML
 }
 
 func NewAddPackageModal(app *stores.App) *AddPackageModal {
-	v := &AddPackageModal{
-		app: app,
+	v := &AddPackageModal{}
+	v.Modal = &Modal{
+		app:    app,
+		id:     models.AddPackageModal,
+		title:  "Add package...",
+		action: v.save,
+		shown: func() {
+			js.Global.Call("$", "#add-package-input").Call("focus")
+			js.Global.Call("$", "#add-package-input").Call("val", "")
+		},
 	}
 	return v
 }
@@ -38,11 +47,7 @@ func (v *AddPackageModal) Render() vecty.ComponentOrHTML {
 			}),
 		),
 	)
-	return Modal(
-		"Add package...",
-		"add-package-modal",
-		v.save,
-	).Body(
+	return v.Body(
 		elem.Form(
 			elem.Div(
 				vecty.Markup(vecty.Class("form-group")),
@@ -65,7 +70,6 @@ func (v *AddPackageModal) save(*vecty.Event) {
 		v.app.Fail(fmt.Errorf("%s already exists", value))
 		return
 	}
-	v.app.Dispatch(&actions.AddPackage{
-		Path: value,
-	})
+	v.app.Dispatch(&actions.ModalClose{Modal: models.AddPackageModal})
+	v.app.Dispatch(&actions.AddPackage{Path: value})
 }

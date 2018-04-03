@@ -22,7 +22,6 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
 	"github.com/dave/saver"
-	"github.com/gopherjs/gopherjs/js"
 )
 
 func NewSourceStore(app *App) *SourceStore {
@@ -253,21 +252,7 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 			s.source[p][f] = a.Text
 			a.Changed = true
 		}
-	case *actions.AddFileClick:
-		js.Global.Call("$", "#add-file-modal").Call("modal", "show")
-		js.Global.Call("$", "#add-file-input").Call("focus")
-		js.Global.Call("$", "#add-file-input").Call("val", "")
-		payload.Notify()
-	case *actions.AddPackageClick:
-		js.Global.Call("$", "#add-package-modal").Call("modal", "show")
-		js.Global.Call("$", "#add-package-input").Call("focus")
-		js.Global.Call("$", "#add-package-input").Call("val", "")
-		payload.Notify()
-	case *actions.LoadPackageClick:
-		js.Global.Call("$", "#load-package-modal").Call("modal", "show")
-		payload.Notify()
 	case *actions.AddFile:
-		js.Global.Call("$", "#add-file-modal").Call("modal", "hide")
 		p := s.app.Editor.CurrentPackage()
 		if p == "" {
 			s.app.Fail(errors.New("no package selected"))
@@ -283,19 +268,11 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 		}
 		payload.Notify()
 	case *actions.AddPackage:
-		js.Global.Call("$", "#add-package-modal").Call("modal", "hide")
 		if s.source[a.Path] == nil {
 			s.source[a.Path] = map[string]string{}
 		}
 		payload.Notify()
-	case *actions.DeleteFileClick:
-		js.Global.Call("$", "#delete-file-modal").Call("modal", "show")
-		payload.Notify()
-	case *actions.RemovePackageClick:
-		js.Global.Call("$", "#remove-package-modal").Call("modal", "show")
-		payload.Notify()
 	case *actions.DeleteFile:
-		js.Global.Call("$", "#delete-file-modal").Call("modal", "hide")
 		p := s.app.Editor.CurrentPackage()
 		if p == "" {
 			s.app.Fail(errors.New("no package selected"))
@@ -312,7 +289,6 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 		delete(s.source[p], a.Name)
 		payload.Notify()
 	case *actions.RemovePackage:
-		js.Global.Call("$", "#remove-package-modal").Call("modal", "hide")
 		if !s.HasPackage(a.Path) {
 			s.app.Fail(fmt.Errorf("%s not found", a.Path))
 			return true

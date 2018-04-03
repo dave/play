@@ -3,6 +3,7 @@ package views
 import (
 	"github.com/dave/dropper"
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
 	"github.com/dave/splitter"
 	"github.com/gopherjs/gopherjs/js"
@@ -167,6 +168,7 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 		NewRemovePackageModal(v.app),
 		NewDeployDoneModal(v.app),
 		NewLoadPackageModal(v.app),
+		NewClashWarningModal(v.app),
 		elem.Anchor(
 			vecty.Markup(
 				prop.Href("https://github.com/dave/play"),
@@ -229,7 +231,7 @@ func (v *Page) renderLeft() *vecty.HTML {
 					vecty.Property("type", "button"),
 					vecty.Class("btn", "btn-primary"),
 					event.Click(func(e *vecty.Event) {
-						v.app.Dispatch(&actions.AddFileClick{})
+						v.app.Dispatch(&actions.ModalOpen{Modal: models.AddFileModal})
 					}).PreventDefault(),
 					vecty.Style("display", addFileDisplay),
 				),
@@ -240,7 +242,7 @@ func (v *Page) renderLeft() *vecty.HTML {
 					vecty.Property("type", "button"),
 					vecty.Class("btn", "btn-primary"),
 					event.Click(func(e *vecty.Event) {
-						v.app.Dispatch(&actions.AddPackageClick{})
+						v.app.Dispatch(&actions.ModalOpen{Modal: models.AddPackageModal})
 					}).PreventDefault(),
 					vecty.Style("display", addPackageDisplay),
 				),
