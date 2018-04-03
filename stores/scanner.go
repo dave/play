@@ -138,8 +138,10 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 		delete(s.imports[s.app.Editor.CurrentPackage()], action.Name)
 		payload.Notify()
 	case *actions.RemovePackage:
+		payload.Wait(s.app.Source)
 		delete(s.imports, action.Path)
 		delete(s.names, action.Path)
+		s.checkForClash()
 		payload.Notify()
 	case *actions.AddPackage:
 		payload.Wait(s.app.Source)

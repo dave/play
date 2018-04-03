@@ -2,6 +2,7 @@ package stores
 
 import (
 	"fmt"
+	"go/types"
 
 	"bytes"
 
@@ -49,6 +50,8 @@ func NewArchiveStore(app *App) *ArchiveStore {
 
 func (s *ArchiveStore) Compile(path string) ([]*compiler.Archive, error) {
 	done := make(map[string]bool)
+	archives := map[string]*compiler.Archive{}
+	packages := map[string]*types.Package{}
 	var deps []*compiler.Archive
 	var compile func(path string) error
 	compile = func(path string) error {
@@ -66,6 +69,8 @@ func (s *ArchiveStore) Compile(path string) ([]*compiler.Archive, error) {
 				s.app.Source.Source(),
 				deps,
 				false,
+				archives,
+				packages,
 			)
 			if err != nil {
 				return err
