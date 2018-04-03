@@ -23,7 +23,7 @@ func NewAddPackageModal(app *stores.App) *AddPackageModal {
 	v.Modal = &Modal{
 		app:    app,
 		id:     models.AddPackageModal,
-		title:  "Add package...",
+		title:  "Add package",
 		action: v.save,
 		shown: func() {
 			js.Global.Call("$", "#add-package-input").Call("focus")

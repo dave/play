@@ -154,6 +154,14 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 			s.app.Fail(err)
 			return true
 		}
+	case *actions.LoadSource:
+		if action.Save {
+			payload.Wait(s.app.Editor)
+			if err := s.saveSource(); err != nil {
+				s.app.Fail(err)
+				return true
+			}
+		}
 	}
 	return true
 }

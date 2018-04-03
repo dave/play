@@ -18,7 +18,7 @@ func NewDeployDoneModal(app *stores.App) *DeployDoneModal {
 		&Modal{
 			app:   app,
 			id:    models.DeployDoneModal,
-			title: "Deployed...",
+			title: "Deployed",
 		},
 	}
 	return v

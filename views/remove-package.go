@@ -19,7 +19,7 @@ func NewRemovePackageModal(app *stores.App) *RemovePackageModal {
 	v.Modal = &Modal{
 		app:    app,
 		id:     models.RemovePackageModal,
-		title:  "Remove package...",
+		title:  "Remove package",
 		action: v.action,
 	}
 	return v

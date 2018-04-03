@@ -26,6 +26,12 @@ func NewMenu(app *stores.App) *Menu {
 }
 
 func (v *Menu) Render() vecty.ComponentOrHTML {
+
+	clashWarningDisplay := "none"
+	if len(v.app.Scanner.Clashes()) > 0 {
+		clashWarningDisplay = ""
+	}
+
 	return elem.Navigation(
 		vecty.Markup(
 			vecty.Class("menu", "navbar", "navbar-expand", "navbar-light", "bg-light"),
@@ -36,39 +42,39 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 			),
 			v.renderPackageDropdown(),
 			v.renderFileDropdown(),
-			/*
-				elem.ListItem(
+
+			elem.ListItem(
+				vecty.Markup(
+					vecty.Class("nav-item"),
+					vecty.Style("display", clashWarningDisplay),
+				),
+				elem.Anchor(
 					vecty.Markup(
-						vecty.Class("nav-item"),
+						prop.Href(""),
+						vecty.Class("nav-link", "octicon"),
+						event.Click(func(e *vecty.Event) {
+							v.app.Dispatch(&actions.ModalOpen{Modal: models.ClashWarningModal})
+						}).PreventDefault(),
 					),
-					elem.Anchor(
+					vecty.Tag(
+						"svg",
 						vecty.Markup(
-							prop.Href(""),
-							vecty.Class("nav-link", "octicon"),
-							event.Click(func(e *vecty.Event) {
-								v.app.Dispatch(&actions.ModalOpen{Modal: models.ClashWarningModal})
-							}).PreventDefault(),
+							vecty.Namespace("http://www.w3.org/2000/svg"),
+							vecty.Attribute("width", "14"),
+							vecty.Attribute("height", "16"),
+							vecty.Attribute("viewBox", "0 0 14 16"),
 						),
 						vecty.Tag(
-							"svg",
+							"path",
 							vecty.Markup(
 								vecty.Namespace("http://www.w3.org/2000/svg"),
-								vecty.Attribute("width", "14"),
-								vecty.Attribute("height", "16"),
-								vecty.Attribute("viewBox", "0 0 14 16"),
-							),
-							vecty.Tag(
-								"path",
-								vecty.Markup(
-									vecty.Namespace("http://www.w3.org/2000/svg"),
-									vecty.Attribute("fill-rule", "evenodd"),
-									vecty.Attribute("d", "M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"),
-								),
+								vecty.Attribute("fill-rule", "evenodd"),
+								vecty.Attribute("d", "M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"),
 							),
 						),
 					),
 				),
-			*/
+			),
 		),
 		elem.UnorderedList(
 			vecty.Markup(

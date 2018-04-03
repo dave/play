@@ -25,7 +25,7 @@ func NewAddFileModal(app *stores.App) *AddFileModal {
 	v.Modal = &Modal{
 		app:    app,
 		id:     models.AddFileModal,
-		title:  "Add file...",
+		title:  "Add file",
 		action: v.save,
 		shown: func() {
 			js.Global.Call("$", "#add-file-input").Call("focus")

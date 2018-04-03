@@ -19,7 +19,7 @@ func NewDeleteFileModal(app *stores.App) *DeleteFileModal {
 	v.Modal = &Modal{
 		app:    app,
 		id:     models.DeleteFileModal,
-		title:  "Delete file...",
+		title:  "Delete file",
 		action: v.action,
 	}
 	return v

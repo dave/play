@@ -19,6 +19,7 @@ func NewScannerStore(app *App) *ScannerStore {
 		app:     app,
 		imports: map[string]map[string][]string{},
 		names:   map[string]string{},
+		clashes: map[string]map[string]bool{},
 	}
 	return s
 }
@@ -27,6 +28,11 @@ type ScannerStore struct {
 	app     *App
 	imports map[string]map[string][]string
 	names   map[string]string
+	clashes map[string]map[string]bool
+}
+
+func (s *ScannerStore) Clashes() map[string]map[string]bool {
+	return s.clashes
 }
 
 // Main is the path of the main package
@@ -137,7 +143,9 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 		payload.Notify()
 	case *actions.AddPackage:
 		payload.Wait(s.app.Source)
-		s.checkForClash()
+		if s.checkForClash() {
+			payload.Notify()
+		}
 	case *actions.LoadSource:
 		payload.Wait(s.app.Source)
 
@@ -155,14 +163,18 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 			}
 		}
 
-		s.checkForClash()
+		if s.checkForClash() {
+			changed = true
+		}
 
 		if changed {
 			payload.Notify()
 		}
 	case *actions.UpdateClose:
 		payload.Wait(s.app.Archive)
-		s.checkForClash()
+		if s.checkForClash() {
+			payload.Notify()
+		}
 	case *actions.DragDrop:
 		payload.Wait(s.app.Source)
 		var changed bool
@@ -187,9 +199,8 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 	return true
 }
 
-func (s *ScannerStore) checkForClash() {
+func (s *ScannerStore) checkForClash() bool {
 
-	var incomplete bool
 	clashes := map[string]map[string]bool{}
 
 	var check func(path string)
@@ -203,8 +214,6 @@ func (s *ScannerStore) checkForClash() {
 			for _, imp := range ci.Archive.Imports {
 				imports[imp] = true
 			}
-		} else {
-			incomplete = true
 		}
 		for imp := range imports {
 			check(imp)
@@ -219,15 +228,13 @@ func (s *ScannerStore) checkForClash() {
 	for path := range s.MainPackages() {
 		check(path)
 	}
-	if incomplete {
-		s.app.Debug("Clash: incomplete")
-	}
 
-	if len(clashes) > 0 {
-		for imp, packages := range clashes {
-			s.app.Debug("Clash: some pre-compiled packages import", imp, " - ", packages)
-		}
-	}
+	hadClashesBefore := len(s.clashes) > 0
+	hasClashesAfter := len(clashes) > 0
+
+	s.clashes = clashes
+
+	return hadClashesBefore || hasClashesAfter
 }
 
 func (s *ScannerStore) refresh(path, filename, contents string) bool {

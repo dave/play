@@ -22,6 +22,7 @@ type LoadSource struct {
 	Source         map[string]map[string]string
 	CurrentPackage string
 	CurrentFile    string
+	Save           bool // Save directly after loading? false during initialising, true for load package.
 }
 
 type UserChangedSplit struct{ Sizes []float64 }
@@ -81,10 +82,14 @@ type UpdateClose struct {
 	Main string
 }
 
-type GetStart struct{ Path string }
+type GetStart struct {
+	Path string
+	Save bool // Save directly after loading? false during initialising, true for load package.
+}
 type GetOpen struct{ Path string }
 type GetMessage struct {
 	Path    string
 	Message interface{}
+	Save    bool // Save directly after loading? false during initialising, true for load package.
 }
 type GetClose struct{}

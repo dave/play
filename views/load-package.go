@@ -19,7 +19,7 @@ func NewLoadPackageModal(app *stores.App) *LoadPackageModal {
 	v.Modal = &Modal{
 		app:    app,
 		id:     models.LoadPackageModal,
-		title:  "Load package...",
+		title:  "Load package",
 		action: v.action,
 	}
 	return v
@@ -68,5 +68,5 @@ func (v *LoadPackageModal) action(*vecty.Event) {
 	i := n.Get("selectedIndex").Int()
 	value := n.Get("options").Index(i).Get("value").String()
 	v.app.Dispatch(&actions.ModalClose{Modal: models.LoadPackageModal})
-	v.app.Dispatch(&actions.GetStart{Path: value})
+	v.app.Dispatch(&actions.GetStart{Path: value, Save: true})
 }

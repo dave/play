@@ -22,10 +22,12 @@ func (s *GetStore) Handle(payload *flux.Payload) bool {
 	case *actions.GetStart:
 		s.app.Log("downloading")
 		s.app.Dispatch(&actions.Dial{
-			Url:     defaultUrl(),
-			Open:    func() flux.ActionInterface { return &actions.GetOpen{Path: action.Path} },
-			Message: func(m interface{}) flux.ActionInterface { return &actions.GetMessage{Path: action.Path, Message: m} },
-			Close:   func() flux.ActionInterface { return &actions.GetClose{} },
+			Url:  defaultUrl(),
+			Open: func() flux.ActionInterface { return &actions.GetOpen{Path: action.Path} },
+			Message: func(m interface{}) flux.ActionInterface {
+				return &actions.GetMessage{Path: action.Path, Message: m, Save: action.Save}
+			},
+			Close: func() flux.ActionInterface { return &actions.GetClose{} },
 		})
 		payload.Notify()
 	case *actions.GetOpen:
@@ -42,7 +44,7 @@ func (s *GetStore) Handle(payload *flux.Payload) bool {
 				s.app.Log(message.Message)
 			}
 		case messages.GetComplete:
-			s.app.Dispatch(&actions.LoadSource{Source: message.Source})
+			s.app.Dispatch(&actions.LoadSource{Source: message.Source, Save: action.Save})
 		}
 	case *actions.GetClose:
 		s.app.Log()

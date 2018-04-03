@@ -1,12 +1,13 @@
 package views
 
 import (
+	"fmt"
+	"sort"
+
 	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
 	"github.com/gopherjs/vecty"
 	"github.com/gopherjs/vecty/elem"
-	"github.com/gopherjs/vecty/event"
-	"github.com/gopherjs/vecty/prop"
 )
 
 type ClashWarningModal struct {
@@ -18,7 +19,7 @@ func NewClashWarningModal(app *stores.App) *ClashWarningModal {
 		&Modal{
 			app:    app,
 			id:     models.ClashWarningModal,
-			title:  "Package clash...",
+			title:  "Warning",
 			action: nil,
 		},
 	}
@@ -26,66 +27,47 @@ func NewClashWarningModal(app *stores.App) *ClashWarningModal {
 }
 
 func (v *ClashWarningModal) Render() vecty.ComponentOrHTML {
+	var paragraphs []vecty.MarkupOrChild
+	for source, compiled := range v.app.Scanner.Clashes() {
+		var paths []string
+		for p := range compiled {
+			paths = append(paths, p)
+		}
+		var text string
+		if len(compiled) == 0 {
+			continue
+		} else if len(compiled) == 1 {
+			text = fmt.Sprintf("Source package %s is imported by pre-compiled package %s.", source, paths[0])
+			paragraphs = append(paragraphs, elem.Paragraph(
+				vecty.Text(text),
+			))
+		} else {
+			sort.Strings(paths)
+			text = fmt.Sprintf("Source package %s is imported by these pre-compiled packages:", source)
+			var items []vecty.MarkupOrChild
+			for _, path := range paths {
+				items = append(items, elem.ListItem(
+					vecty.Text(path),
+				))
+			}
+			paragraphs = append(paragraphs, elem.Paragraph(
+				vecty.Text(text),
+				elem.UnorderedList(items...),
+			))
+		}
+
+	}
+	var text string
+	if len(v.app.Scanner.Clashes()) == 1 {
+		text = "If the external interface this source packages changes, your code may break at run-time. To solve this, either load the source for all pre-compiled packages, or use the Update feature each time you change the external interface of the source package."
+	} else {
+		text = "If the external interface these source packages change, your code may break at run-time. To solve this, either load the source for all pre-compiled packages, or use the Update feature each time you change the external interface of the source packages."
+	}
+	paragraphs = append(paragraphs, elem.Paragraph(
+		vecty.Text(text),
+	))
+
 	return v.Body(
-		elem.Form(
-			elem.Div(
-				vecty.Markup(vecty.Class("form-group")),
-				elem.Label(
-					vecty.Markup(
-						vecty.Property("for", string(v.id)),
-						vecty.Class("col-form-label"),
-					),
-					vecty.Text("Link"),
-				),
-				elem.Input(
-					vecty.Markup(
-						prop.Type(prop.TypeText),
-						vecty.Class("form-control"),
-						prop.ID("clash-warning-input-link"),
-						event.Focus(func(ev *vecty.Event) {
-							ev.Target.Call("select")
-						}).PreventDefault(),
-						prop.Value(v.app.Deploy.Index()),
-					),
-				),
-				elem.Small(
-					vecty.Markup(
-						vecty.Class("form-text", "text-muted"),
-					),
-					elem.Anchor(
-						vecty.Markup(
-							prop.Href(v.app.Deploy.Index()),
-							vecty.Property("target", "_blank"),
-						),
-						vecty.Text("Click here"),
-					),
-					vecty.Text(". Use the link for testing and toy projects. Remember you're sharing the jsgo.io domain with everyone else, so the browser environment should be considered toxic."),
-				),
-				elem.Label(
-					vecty.Markup(
-						vecty.Property("for", string(v.id)),
-						vecty.Class("col-form-label"),
-					),
-					vecty.Text("Loader JS"),
-				),
-				elem.Input(
-					vecty.Markup(
-						prop.Type(prop.TypeText),
-						vecty.Class("form-control"),
-						prop.ID("clash-warning-input-loader"),
-						event.Focus(func(ev *vecty.Event) {
-							ev.Target.Call("select")
-						}).PreventDefault(),
-						prop.Value(v.app.Deploy.LoaderJs()),
-					),
-				),
-				elem.Small(
-					vecty.Markup(
-						vecty.Class("form-text", "text-muted"),
-					),
-					vecty.Text("For production, use the Loader JS in a script tag on your own site."),
-				),
-			),
-		),
+		paragraphs...,
 	).Build()
 }

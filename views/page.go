@@ -147,6 +147,11 @@ const Styles = `
 	#console {
 		padding:5px;
 	}
+	.octicon {
+		display: inline-block;
+		vertical-align: text-top;
+		fill: currentColor;
+	}
 `
 
 func (v *Page) Render() vecty.ComponentOrHTML {
