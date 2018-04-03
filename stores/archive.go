@@ -147,6 +147,11 @@ func (s *ArchiveStore) Cache() map[string]CacheItem {
 
 func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
+	case *actions.LoadSource:
+		payload.Wait(s.app.Scanner)
+		if !s.AllFresh() {
+			s.app.Dispatch(&actions.UpdateStart{})
+		}
 	case *actions.UpdateStart:
 		path, count := s.app.Scanner.Main()
 		if path == "" {
@@ -258,11 +263,11 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 			if downloaded == 0 && unchanged == 0 {
 				s.app.Log()
 			} else if downloaded > 0 && unchanged > 0 {
-				s.app.Logf("%d downloaded, %d unchanged", downloaded, unchanged)
+				s.app.LogHidef("%d downloaded, %d unchanged", downloaded, unchanged)
 			} else if downloaded > 0 {
-				s.app.Logf("%d downloaded", downloaded)
+				s.app.LogHidef("%d downloaded", downloaded)
 			} else if unchanged > 0 {
-				s.app.Logf("%d unchanged", unchanged)
+				s.app.LogHidef("%d unchanged", unchanged)
 			}
 		}
 		payload.Notify()

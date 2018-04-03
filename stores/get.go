@@ -45,10 +45,18 @@ func (s *GetStore) Handle(payload *flux.Payload) bool {
 			}
 		case messages.GetComplete:
 			s.app.Dispatch(&actions.LoadSource{Source: message.Source, Save: action.Save})
+			var count int
+			for _, files := range message.Source {
+				count += len(files)
+			}
+			if count == 1 {
+				s.app.LogHide("got 1 file")
+			} else {
+				s.app.LogHidef("got %d files", count)
+			}
 		}
 	case *actions.GetClose:
-		s.app.Log()
-		payload.Notify()
+		// nothing
 	}
 	return true
 }

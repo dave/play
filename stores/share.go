@@ -44,10 +44,10 @@ func (s *ShareStore) Handle(payload *flux.Payload) bool {
 			s.app.Log("storing")
 		case messages.ShareComplete:
 			js.Global.Get("history").Call("replaceState", js.M{}, "", fmt.Sprintf("/%s", message.Hash))
-			s.app.Log("shared")
+			s.app.LogHide("shared")
 		}
 	case *actions.ShareClose:
-		s.app.Log()
+		// nothing
 	}
 	return true
 }

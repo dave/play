@@ -78,11 +78,11 @@ func (s *DeployStore) Handle(payload *flux.Payload) bool {
 			s.mainHash = message.Main
 			s.indexHash = message.Index
 			s.app.Dispatch(&actions.ModalOpen{Modal: models.DeployDoneModal})
-			s.app.Log("deployed")
+			s.app.LogHide("deployed")
 			payload.Notify()
 		}
 	case *actions.DeployClose:
-		s.app.Log()
+		// nothing
 	}
 	return true
 }

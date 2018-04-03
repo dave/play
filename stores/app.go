@@ -8,6 +8,8 @@ import (
 
 	"strings"
 
+	"time"
+
 	"github.com/dave/flux"
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -90,6 +92,23 @@ func (a *App) Debug(message ...interface{}) {
 	js.Global.Get("console").Call("log", message...)
 }
 
+var lastLog *struct{}
+
+// LogHide hides the message after 2 seconds
+func (a *App) LogHide(args ...interface{}) {
+	a.Log(args...)
+	if len(args) > 0 {
+		// clear message after 2 sec if not changed
+		before := lastLog
+		go func() {
+			<-time.After(time.Second * 2)
+			if before == lastLog {
+				a.Log()
+			}
+		}()
+	}
+}
+
 func (a *App) Log(args ...interface{}) {
 	m := dom.GetWindow().Document().GetElementByID("message")
 	var message string
@@ -103,11 +122,16 @@ func (a *App) Log(args ...interface{}) {
 		requestAnimationFrame()
 		m.SetInnerHTML(message)
 		requestAnimationFrame()
+		lastLog = &struct{}{}
 	}
 }
 
 func (a *App) Logf(format string, args ...interface{}) {
 	a.Log(fmt.Sprintf(format, args...))
+}
+
+func (a *App) LogHidef(format string, args ...interface{}) {
+	a.LogHide(fmt.Sprintf(format, args...))
 }
 
 func requestAnimationFrame() {
