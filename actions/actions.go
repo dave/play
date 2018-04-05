@@ -77,12 +77,9 @@ type DeployClose struct{}
 
 // UpdateStart updates the deps from the server and if Run == true, compiles and runs the app
 type UpdateStart struct{ Run bool }
-type UpdateOpen struct{ Main string }
+type UpdateOpen struct{}
 type UpdateMessage struct{ Message interface{} }
-type UpdateClose struct {
-	Run  bool
-	Main string
-}
+type UpdateClose struct{ Run bool }
 
 type GetStart struct {
 	Path string

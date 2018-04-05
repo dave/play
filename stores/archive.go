@@ -153,23 +153,13 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 			s.app.Dispatch(&actions.UpdateStart{})
 		}
 	case *actions.UpdateStart:
-		path, count := s.app.Scanner.Main()
-		if path == "" {
-			if count == 0 {
-				s.app.Fail(errors.New("project has no main package"))
-				return true
-			} else {
-				s.app.Fail(fmt.Errorf("project has %d main packages - select one and retry", count))
-				return true
-			}
-		}
 		s.app.Log("updating")
 		s.index = nil
 		s.app.Dispatch(&actions.Dial{
 			Url:     defaultUrl(),
-			Open:    func() flux.ActionInterface { return &actions.UpdateOpen{Main: path} },
+			Open:    func() flux.ActionInterface { return &actions.UpdateOpen{} },
 			Message: func(m interface{}) flux.ActionInterface { return &actions.UpdateMessage{Message: m} },
-			Close:   func() flux.ActionInterface { return &actions.UpdateClose{Run: a.Run, Main: path} },
+			Close:   func() flux.ActionInterface { return &actions.UpdateClose{Run: a.Run} },
 		})
 		payload.Notify()
 
@@ -179,7 +169,6 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 			hashes[path] = item.Hash
 		}
 		message := messages.Update{
-			Main:   a.Main,
 			Source: s.app.Source.Source(),
 			Cache:  hashes,
 		}
@@ -244,7 +233,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 
 		s.wait.Wait()
 
-		if !s.Fresh(a.Main) {
+		if !s.AllFresh() {
 			s.app.Fail(errors.New("websocket closed but archives not updated"))
 			return true
 		}

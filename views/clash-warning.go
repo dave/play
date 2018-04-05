@@ -36,14 +36,13 @@ func (v *ClashWarningModal) Render() vecty.ComponentOrHTML {
 		var text string
 		if len(compiled) == 0 {
 			continue
-		} else if len(compiled) == 1 {
-			text = fmt.Sprintf("Source package %s is imported by pre-compiled package %s.", source, paths[0])
-			paragraphs = append(paragraphs, elem.Paragraph(
-				vecty.Text(text),
-			))
 		} else {
 			sort.Strings(paths)
-			text = fmt.Sprintf("Source package %s is imported by these pre-compiled packages:", source)
+			if len(compiled) == 1 {
+				text = fmt.Sprintf("Source package %s is imported by this pre-compiled package:", source)
+			} else {
+				text = fmt.Sprintf("Source package %s is imported by these pre-compiled packages:", source)
+			}
 			var items []vecty.MarkupOrChild
 			for _, path := range paths {
 				items = append(items, elem.ListItem(
