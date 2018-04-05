@@ -26,7 +26,7 @@ type App struct {
 	Scanner    *ScannerStore
 	Compile    *CompileStore
 	Share      *ShareStore
-	Get        *GetStore
+	Request    *RequestStore
 	Deploy     *DeployStore
 	Page       *PageStore
 	Source     *SourceStore
@@ -46,7 +46,7 @@ func (a *App) Init() {
 	a.Scanner = NewScannerStore(a)
 	a.Compile = NewCompileStore(a)
 	a.Share = NewShareStore(a)
-	a.Get = NewGetStore(a)
+	a.Request = NewRequestStore(a)
 	a.Deploy = NewDeployStore(a)
 	a.Page = NewPageStore(a)
 	a.Source = NewSourceStore(a)
@@ -63,7 +63,7 @@ func (a *App) Init() {
 		a.Scanner,
 		a.Compile,
 		a.Share,
-		a.Get,
+		a.Request,
 		a.Deploy,
 		a.Page,
 		a.Source,

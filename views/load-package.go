@@ -140,7 +140,7 @@ func (v *LoadPackageModal) Render() vecty.ComponentOrHTML {
 						prop.Href(""),
 						event.Click(func(e *vecty.Event) {
 							v.app.Dispatch(&actions.ModalClose{Modal: models.LoadPackageModal})
-							v.app.Dispatch(&actions.UpdateStart{})
+							v.app.Dispatch(&actions.RequestStart{Type: models.UpdateRequest})
 						}).PreventDefault(),
 					),
 					vecty.Text("Update"),
@@ -156,5 +156,5 @@ func (v *LoadPackageModal) action(*vecty.Event) {
 	i := n.Get("selectedIndex").Int()
 	value := n.Get("options").Index(i).Get("value").String()
 	v.app.Dispatch(&actions.ModalClose{Modal: models.LoadPackageModal})
-	v.app.Dispatch(&actions.GetStart{Path: value, Save: true})
+	v.app.Dispatch(&actions.RequestStart{Type: models.GetRequest, Path: value})
 }

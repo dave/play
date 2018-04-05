@@ -148,7 +148,7 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 							prop.Href(""),
 							event.Click(func(e *vecty.Event) {
 								v.app.Dispatch(&actions.FormatCode{
-									Then: &actions.UpdateStart{},
+									Then: &actions.RequestStart{Type: models.UpdateRequest},
 								})
 							}).PreventDefault(),
 						),

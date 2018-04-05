@@ -25,6 +25,7 @@ type LoadSource struct {
 	CurrentPackage string
 	CurrentFile    string
 	Save           bool // Save directly after loading? false during initialising, true for load package.
+	Update         bool // Update directly after loading?
 }
 
 type UserChangedSplit struct{ Sizes []float64 }
@@ -75,20 +76,18 @@ type DeployOpen struct{}
 type DeployMessage struct{ Message interface{} }
 type DeployClose struct{}
 
-// UpdateStart updates the deps from the server and if Run == true, compiles and runs the app
-type UpdateStart struct{ Run bool }
-type UpdateOpen struct{}
-type UpdateMessage struct{ Message interface{} }
-type UpdateClose struct{ Run bool }
-
-type GetStart struct {
-	Path string
-	Save bool // Save directly after loading? false during initialising, true for load package.
+type RequestStart struct {
+	Type models.RequestType
+	Path string // Path to get (for GetRequest and InitialiseRequest)
+	Run  bool   // Run after update? (for UpdateRequest)
 }
-type GetOpen struct{ Path string }
-type GetMessage struct {
-	Path    string
+type RequestOpen struct {
+	*RequestStart
+}
+type RequestMessage struct {
+	*RequestStart
 	Message interface{}
-	Save    bool // Save directly after loading? false during initialising, true for load package.
 }
-type GetClose struct{}
+type RequestClose struct {
+	*RequestStart
+}

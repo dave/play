@@ -20,6 +20,7 @@ import (
 	"github.com/dave/jsgo/builderjs"
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"github.com/gopherjs/gopherjs/compiler"
 )
 
@@ -145,48 +146,23 @@ func (s *ArchiveStore) Cache() map[string]CacheItem {
 	return s.cache
 }
 
+func (s *ArchiveStore) CacheStrings() map[string]string {
+	hashes := map[string]string{}
+	for path, item := range s.app.Archive.Cache() {
+		hashes[path] = item.Hash
+	}
+	return hashes
+}
+
 func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
 	case *actions.LoadSource:
 		payload.Wait(s.app.Scanner)
-		if !s.AllFresh() {
-			s.app.Dispatch(&actions.UpdateStart{})
+		if a.Update && !s.AllFresh() {
+			s.app.Dispatch(&actions.RequestStart{Type: models.UpdateRequest, Run: false})
 		}
-	case *actions.UpdateStart:
-		s.app.Log("updating")
-		s.index = nil
-		s.app.Dispatch(&actions.Dial{
-			Url:     defaultUrl(),
-			Open:    func() flux.ActionInterface { return &actions.UpdateOpen{} },
-			Message: func(m interface{}) flux.ActionInterface { return &actions.UpdateMessage{Message: m} },
-			Close:   func() flux.ActionInterface { return &actions.UpdateClose{Run: a.Run} },
-		})
-		payload.Notify()
-
-	case *actions.UpdateOpen:
-		hashes := map[string]string{}
-		for path, item := range s.Cache() {
-			hashes[path] = item.Hash
-		}
-		message := messages.Update{
-			Source: s.app.Source.Source(),
-			Cache:  hashes,
-		}
-		s.app.Dispatch(&actions.Send{
-			Message: message,
-		})
-	case *actions.UpdateMessage:
+	case *actions.RequestMessage:
 		switch message := a.Message.(type) {
-		case messages.Queueing:
-			if message.Position > 1 {
-				s.app.Logf("queued position %d", message.Position)
-			}
-		case messages.Downloading:
-			if message.Message != "" {
-				s.app.Log(message.Message)
-			} else if message.Done {
-				s.app.Log("building")
-			}
 		case messages.Archive:
 			if message.Standard {
 				s.wait.Add(1)
@@ -229,7 +205,12 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 		case messages.Index:
 			s.index = message
 		}
-	case *actions.UpdateClose:
+	case *actions.RequestClose:
+
+		if a.Type == models.GetRequest {
+			// get request doesn't do an update - just gets files
+			return true
+		}
 
 		s.wait.Wait()
 

@@ -172,7 +172,7 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 		if changed {
 			payload.Notify()
 		}
-	case *actions.UpdateClose:
+	case *actions.RequestClose:
 		payload.Wait(s.app.Archive)
 		if s.checkForClash() {
 			payload.Notify()

@@ -14,6 +14,7 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/builderjs"
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"github.com/gopherjs/gopherjs/compiler/prelude"
 	"github.com/gopherjs/gopherjs/js"
 	"honnef.co/go/js/dom"
@@ -65,7 +66,7 @@ func (s *CompileStore) compile() error {
 
 	if !s.app.Archive.Fresh(path) {
 		s.app.Dispatch(
-			&actions.UpdateStart{Run: true},
+			&actions.RequestStart{Type: models.UpdateRequest, Run: true},
 		)
 		return nil
 	}

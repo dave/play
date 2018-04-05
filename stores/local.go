@@ -13,6 +13,7 @@ import (
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/locstor"
 	"github.com/dave/play/actions"
+	"github.com/dave/play/models"
 	"honnef.co/go/js/dom"
 )
 
@@ -92,6 +93,7 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 				Source:         source,
 				CurrentFile:    currentFile,
 				CurrentPackage: currentPackage,
+				Update:         true,
 			})
 			break
 		}
@@ -112,12 +114,15 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 				s.app.Fail(err)
 				return true
 			}
-			s.app.Dispatch(&actions.LoadSource{Source: m.Source})
+			s.app.Dispatch(&actions.LoadSource{
+				Source: m.Source,
+				Update: true,
+			})
 			break
 		}
 
 		// Package path in page path -> open websocket and load files
-		s.app.Dispatch(&actions.GetStart{Path: location})
+		s.app.Dispatch(&actions.RequestStart{Type: models.InitialiseRequest, Path: location})
 
 	case *actions.UserChangedSplit:
 		if err := s.saveSplitSizes(action.Sizes); err != nil {

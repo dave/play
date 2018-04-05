@@ -11,3 +11,11 @@ const (
 	LoadPackageModal   Modal = "load-package-modal"
 	RemovePackageModal Modal = "remove-package-modal"
 )
+
+type RequestType string
+
+const (
+	GetRequest        RequestType = "get"
+	UpdateRequest     RequestType = "update"
+	InitialiseRequest RequestType = "initialise"
+)
