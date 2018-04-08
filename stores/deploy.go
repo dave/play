@@ -56,8 +56,9 @@ func (s *DeployStore) Handle(payload *flux.Payload) bool {
 		payload.Notify()
 	case *actions.DeployOpen:
 		message := messages.Deploy{
-			Main:   s.mainPath,
-			Source: s.app.Source.Source(),
+			Main:    s.mainPath,
+			Imports: s.app.Scanner.Imports(s.mainPath),
+			Source:  s.app.Source.Source(),
 		}
 		s.app.Dispatch(&actions.Send{
 			Message: message,
