@@ -228,7 +228,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 					}()
 					getwait.Wait()
 					s.cache[message.Path] = c
-					s.app.Log(message.Path)
+					s.app.Log(c.Archive.Name)
 				}()
 				return true
 			} else {
