@@ -42,10 +42,12 @@ func (s *RequestStore) Handle(payload *flux.Payload) bool {
 			message = messages.Update{
 				Source: s.app.Source.Source(),
 				Cache:  s.app.Archive.CacheStrings(),
+				Minify: s.app.Page.Minify(),
 			}
 		case models.InitialiseRequest:
 			message = messages.Initialise{
-				Path: action.Path,
+				Path:   action.Path,
+				Minify: s.app.Page.Minify(),
 			}
 		}
 		s.app.Dispatch(&actions.Send{

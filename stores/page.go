@@ -11,6 +11,7 @@ func NewPageStore(app *App) *PageStore {
 		app:      app,
 		autoOpen: true,
 		modals:   map[models.Modal]bool{},
+		minify:   true,
 	}
 	return s
 }
@@ -18,6 +19,7 @@ func NewPageStore(app *App) *PageStore {
 type PageStore struct {
 	app         *App
 	console     bool
+	minify      bool
 	autoOpen    bool
 	modals      map[models.Modal]bool
 	showAllDeps bool // show all dependencies in the load package modal
@@ -35,6 +37,10 @@ func (s *PageStore) Console() bool {
 	return s.console
 }
 
+func (s *PageStore) Minify() bool {
+	return s.minify
+}
+
 func (s *PageStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
 	case *actions.ModalOpen:
@@ -45,6 +51,9 @@ func (s *PageStore) Handle(payload *flux.Payload) bool {
 		payload.Notify()
 	case *actions.ConsoleToggleClick:
 		s.console = !s.console
+		payload.Notify()
+	case *actions.MinifyToggleClick:
+		s.minify = !s.minify
 		payload.Notify()
 	case *actions.ConsoleFirstWrite:
 		if s.autoOpen {

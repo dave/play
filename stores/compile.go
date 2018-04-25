@@ -1,7 +1,6 @@
 package stores
 
 import (
-	"context"
 	"errors"
 
 	"bytes"
@@ -14,7 +13,6 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
-	"github.com/dave/play/stores/builderjs"
 	"github.com/gopherjs/gopherjs/compiler/prelude"
 	"github.com/gopherjs/gopherjs/js"
 	"honnef.co/go/js/dom"
@@ -148,20 +146,22 @@ func (s *CompileStore) compile() error {
 	scriptPrelude.SetInnerHTML(prelude.Prelude)
 	head.AppendChild(scriptPrelude)
 
-	for _, d := range deps {
-		code, _, err := builderjs.GetPackageCode(context.Background(), d, false, false)
-		if err != nil {
-			return err
-		}
+	scriptLoad := doc.CreateElement("script")
+	scriptLoad.SetInnerHTML(`var $load = {};`)
+	head.AppendChild(scriptLoad)
+
+	loaderJs := ""
+	for _, dep := range deps {
 		scriptDep := doc.CreateElement("script")
-		scriptDep.SetInnerHTML(string(code))
+		scriptDep.SetInnerHTML(string(dep.Js))
 		head.AppendChild(scriptDep)
+		loaderJs += "$load[" + strconv.Quote(dep.Path) + "]();\n"
 	}
 
 	mainQuoted := strconv.Quote(path)
 
 	scriptInit := doc.CreateElement("script")
-	scriptInit.SetInnerHTML(`
+	scriptInit.SetInnerHTML(loaderJs + `
 		$mainPkg = $packages[` + mainQuoted + `];
 		$synthesizeMethods();
 		$packages["runtime"].$init();

@@ -1,6 +1,7 @@
 package stores
 
 import (
+	"context"
 	"fmt"
 	"go/types"
 
@@ -15,6 +16,8 @@ import (
 	"net/http"
 
 	"sync"
+
+	"io/ioutil"
 
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/config"
@@ -38,8 +41,13 @@ type ArchiveStore struct {
 }
 
 type CacheItem struct {
-	Hash    string
+	Hash string
+
 	Archive *compiler.Archive
+
+	// for standard library packages, archive is stripped of all JS, and JS is downloaded separately
+	// to benefit from browser caching
+	Js []byte
 }
 
 func NewArchiveStore(app *App) *ArchiveStore {
@@ -50,10 +58,16 @@ func NewArchiveStore(app *App) *ArchiveStore {
 	return s
 }
 
-func (s *ArchiveStore) Compile(path string) ([]*compiler.Archive, error) {
+type Dep struct {
+	Path string
+	Js   []byte
+}
+
+func (s *ArchiveStore) Compile(path string) ([]Dep, error) {
 	done := make(map[string]bool)
 	archives := map[string]*compiler.Archive{}
 	packages := map[string]*types.Package{}
+	var jsdeps []Dep
 	var deps []*compiler.Archive
 	var compile func(path string) error
 	compile = func(path string) error {
@@ -70,13 +84,18 @@ func (s *ArchiveStore) Compile(path string) ([]*compiler.Archive, error) {
 				path,
 				s.app.Source.Source(),
 				deps,
-				false,
+				s.app.Page.Minify(),
 				archives,
 				packages,
 			)
 			if err != nil {
 				return err
 			}
+			js, _, err := builderjs.GetPackageCode(context.Background(), archive, false, true)
+			if err != nil {
+				return err
+			}
+			jsdeps = append(jsdeps, Dep{path, js})
 			deps = append(deps, archive)
 			done[path] = true
 			return nil
@@ -90,6 +109,7 @@ func (s *ArchiveStore) Compile(path string) ([]*compiler.Archive, error) {
 				return err
 			}
 		}
+		jsdeps = append(jsdeps, Dep{path, item.Js})
 		deps = append(deps, item.Archive)
 		done[path] = true
 		return nil
@@ -100,7 +120,7 @@ func (s *ArchiveStore) Compile(path string) ([]*compiler.Archive, error) {
 	if err := compile(path); err != nil {
 		return nil, err
 	}
-	return deps, nil
+	return jsdeps, nil
 }
 
 func (s *ArchiveStore) AllFresh() bool {
@@ -157,6 +177,10 @@ func (s *ArchiveStore) CacheStrings() map[string]string {
 
 func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 	switch a := payload.Action.(type) {
+	case *actions.MinifyToggleClick:
+		payload.Wait(s.app.Page)
+		s.index = nil
+		s.app.Dispatch(&actions.RequestStart{Type: models.UpdateRequest, Run: false})
 	case *actions.LoadSource:
 		payload.Wait(s.app.Scanner)
 		if a.Update && !s.AllFresh() {
@@ -169,21 +193,42 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				s.wait.Add(1)
 				go func() {
 					defer s.wait.Done()
-					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.a", config.Protocol, config.PkgHost, message.Path, message.Hash))
-					if err != nil {
-						s.app.Fail(err)
-						return
+					c := CacheItem{
+						Hash: message.Hash,
 					}
-					var a compiler.Archive
-					if err := gob.NewDecoder(resp.Body).Decode(&a); err != nil {
-						s.app.Fail(err)
-						return
-					}
-					s.cache[message.Path] = CacheItem{
-						Hash:    message.Hash,
-						Archive: &a,
-					}
-					s.app.Log(a.Name)
+					var getwait sync.WaitGroup
+					getwait.Add(2)
+					go func() {
+						defer getwait.Done()
+						resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.x", config.Protocol, config.PkgHost, message.Path, message.Hash))
+						if err != nil {
+							s.app.Fail(err)
+							return
+						}
+						var a compiler.Archive
+						if err := gob.NewDecoder(resp.Body).Decode(&a); err != nil {
+							s.app.Fail(err)
+							return
+						}
+						c.Archive = &a
+					}()
+					go func() {
+						defer getwait.Done()
+						resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.js", config.Protocol, config.PkgHost, message.Path, message.Hash))
+						if err != nil {
+							s.app.Fail(err)
+							return
+						}
+						js, err := ioutil.ReadAll(resp.Body)
+						if err != nil {
+							s.app.Fail(err)
+							return
+						}
+						c.Js = js
+					}()
+					getwait.Wait()
+					s.cache[message.Path] = c
+					s.app.Log(message.Path)
 				}()
 				return true
 			} else {
@@ -197,9 +242,15 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 					s.app.Fail(err)
 					return true
 				}
+				js, _, err := builderjs.GetPackageCode(context.Background(), &a, false, true)
+				if err != nil {
+					s.app.Fail(err)
+					return true
+				}
 				s.cache[message.Path] = CacheItem{
 					Hash:    message.Hash,
 					Archive: &a,
+					Js:      js,
 				}
 				s.app.Log(a.Name)
 			}

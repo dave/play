@@ -11,6 +11,7 @@ type Load struct{}
 
 type ConsoleFirstWrite struct{}
 type ConsoleToggleClick struct{}
+type MinifyToggleClick struct{}
 
 type ShowAllDepsChange struct{ State bool }
 

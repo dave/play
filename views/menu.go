@@ -210,6 +210,33 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 							vecty.Text("Show console"),
 						),
 					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
+							prop.Href("#"),
+							event.Click(func(e *vecty.Event) {}).StopPropagation(),
+						),
+						elem.Input(
+							vecty.Markup(
+								prop.Type(prop.TypeCheckbox),
+								vecty.Class("form-check-input", "dropdown-item"),
+								prop.ID("dropdownCheckMinify"),
+								prop.Checked(v.app.Page.Minify()),
+								event.Change(func(e *vecty.Event) {
+									v.app.Dispatch(&actions.MinifyToggleClick{})
+								}),
+								vecty.Style("cursor", "pointer"),
+							),
+						),
+						elem.Label(
+							vecty.Markup(
+								vecty.Class("form-check-label"),
+								prop.For("dropdownCheckMinify"),
+								vecty.Style("cursor", "pointer"),
+							),
+							vecty.Text("Minify JS"),
+						),
+					),
 					elem.Div(
 						vecty.Markup(
 							vecty.Class("dropdown-divider"),
