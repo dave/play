@@ -5,11 +5,7 @@ import (
 	"fmt"
 	"go/types"
 
-	"bytes"
-
 	"encoding/gob"
-
-	"compress/gzip"
 
 	"errors"
 
@@ -189,71 +185,47 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 	case *actions.RequestMessage:
 		switch message := a.Message.(type) {
 		case messages.Archive:
-			if message.Standard {
-				s.wait.Add(1)
+			s.wait.Add(1)
+			go func() {
+				defer s.wait.Done()
+				c := CacheItem{
+					Hash: message.Hash,
+				}
+				var getwait sync.WaitGroup
+				getwait.Add(2)
 				go func() {
-					defer s.wait.Done()
-					c := CacheItem{
-						Hash: message.Hash,
+					defer getwait.Done()
+					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.x", config.Protocol, config.PkgHost, message.Path, message.Hash))
+					if err != nil {
+						s.app.Fail(err)
+						return
 					}
-					var getwait sync.WaitGroup
-					getwait.Add(2)
-					go func() {
-						defer getwait.Done()
-						resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.x", config.Protocol, config.PkgHost, message.Path, message.Hash))
-						if err != nil {
-							s.app.Fail(err)
-							return
-						}
-						var a compiler.Archive
-						if err := gob.NewDecoder(resp.Body).Decode(&a); err != nil {
-							s.app.Fail(err)
-							return
-						}
-						c.Archive = &a
-					}()
-					go func() {
-						defer getwait.Done()
-						resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.js", config.Protocol, config.PkgHost, message.Path, message.Hash))
-						if err != nil {
-							s.app.Fail(err)
-							return
-						}
-						js, err := ioutil.ReadAll(resp.Body)
-						if err != nil {
-							s.app.Fail(err)
-							return
-						}
-						c.Js = js
-					}()
-					getwait.Wait()
-					s.cache[message.Path] = c
-					s.app.Log(c.Archive.Name)
+					var a compiler.Archive
+					if err := gob.NewDecoder(resp.Body).Decode(&a); err != nil {
+						s.app.Fail(err)
+						return
+					}
+					c.Archive = &a
 				}()
-				return true
-			} else {
-				r, err := gzip.NewReader(bytes.NewBuffer(message.Contents))
-				if err != nil {
-					s.app.Fail(err)
-					return true
-				}
-				var a compiler.Archive
-				if err := gob.NewDecoder(r).Decode(&a); err != nil {
-					s.app.Fail(err)
-					return true
-				}
-				js, _, err := builderjs.GetPackageCode(context.Background(), &a, false, true)
-				if err != nil {
-					s.app.Fail(err)
-					return true
-				}
-				s.cache[message.Path] = CacheItem{
-					Hash:    message.Hash,
-					Archive: &a,
-					Js:      js,
-				}
-				s.app.Log(a.Name)
-			}
+				go func() {
+					defer getwait.Done()
+					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.js", config.Protocol, config.PkgHost, message.Path, message.Hash))
+					if err != nil {
+						s.app.Fail(err)
+						return
+					}
+					js, err := ioutil.ReadAll(resp.Body)
+					if err != nil {
+						s.app.Fail(err)
+						return
+					}
+					c.Js = js
+				}()
+				getwait.Wait()
+				s.cache[message.Path] = c
+				s.app.Log(c.Archive.Name)
+			}()
+			return true
 		case messages.Index:
 			s.index = message
 		}
