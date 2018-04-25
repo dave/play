@@ -17,10 +17,11 @@ import (
 	"sync"
 
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/builderjs"
+	"github.com/dave/jsgo/config"
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
+	"github.com/dave/play/stores/builderjs"
 	"github.com/gopherjs/gopherjs/compiler"
 )
 
@@ -168,7 +169,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				s.wait.Add(1)
 				go func() {
 					defer s.wait.Done()
-					resp, err := http.Get(fmt.Sprintf("https://%s/%s.%s.a", s.app.PkgHost(), message.Path, message.Hash))
+					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.a", config.Protocol, config.PkgHost, message.Path, message.Hash))
 					if err != nil {
 						s.app.Fail(err)
 						return

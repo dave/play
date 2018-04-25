@@ -12,9 +12,9 @@ import (
 	"fmt"
 
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/builderjs"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
+	"github.com/dave/play/stores/builderjs"
 	"github.com/gopherjs/gopherjs/compiler/prelude"
 	"github.com/gopherjs/gopherjs/js"
 	"honnef.co/go/js/dom"

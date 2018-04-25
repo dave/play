@@ -139,35 +139,3 @@ func requestAnimationFrame() {
 	js.Global.Call("requestAnimationFrame", func() { close(c) })
 	<-c
 }
-
-func (a *App) Dev() bool {
-	return !strings.HasPrefix(dom.GetWindow().Document().DocumentURI(), "https://")
-}
-
-func (a *App) Protocol() string {
-	if a.Dev() {
-		return "http"
-	}
-	return "https"
-}
-
-func (a *App) IndexHost() string {
-	if a.Dev() {
-		return "dev-index.jsgo.io"
-	}
-	return "jsgo.io"
-}
-
-func (a *App) SrcHost() string {
-	if a.Dev() {
-		return "dev-src.jsgo.io"
-	}
-	return "src.jsgo.io"
-}
-
-func (a *App) PkgHost() string {
-	if a.Dev() {
-		return "dev-pkg.jsgo.io"
-	}
-	return "pkg.jsgo.io"
-}

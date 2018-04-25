@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dave/flux"
+	"github.com/dave/jsgo/config"
 	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
@@ -23,11 +24,11 @@ type DeployStore struct {
 }
 
 func (s *DeployStore) LoaderJs() string {
-	return fmt.Sprintf("%s://%s/%s.%s.js", s.app.Protocol(), s.app.PkgHost(), s.mainPath, s.mainHash)
+	return fmt.Sprintf("%s://%s/%s.%s.js", config.Protocol, config.PkgHost, s.mainPath, s.mainHash)
 }
 
 func (s *DeployStore) Index() string {
-	return fmt.Sprintf("%s://%s/%s", s.app.Protocol(), s.app.IndexHost(), s.indexHash)
+	return fmt.Sprintf("%s://%s/%s", config.Protocol, config.IndexHost, s.indexHash)
 }
 
 func (s *DeployStore) Handle(payload *flux.Payload) bool {
