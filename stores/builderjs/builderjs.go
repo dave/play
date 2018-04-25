@@ -17,7 +17,7 @@ import (
 	"crypto/sha1"
 
 	"github.com/gopherjs/gopherjs/compiler"
-	"golang.org/x/tools/go/gcimporter15"
+	"golang.org/x/tools/go/gcexportdata"
 )
 
 func BuildPackage(path string, source map[string]map[string]string, deps []*compiler.Archive, minify bool, archives map[string]*compiler.Archive, packages map[string]*types.Package) (*compiler.Archive, error) {
@@ -27,7 +27,7 @@ func BuildPackage(path string, source map[string]map[string]string, deps []*comp
 			archives[a.ImportPath] = a
 		}
 		if packages[a.ImportPath] == nil {
-			_, p, err := gcimporter.BImportData(token.NewFileSet(), packages, a.ExportData, a.ImportPath)
+			p, err := gcexportdata.Read(bytes.NewReader(a.ExportData), token.NewFileSet(), packages, a.ImportPath)
 			if err != nil {
 				return nil, err
 			}
