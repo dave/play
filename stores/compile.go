@@ -113,6 +113,8 @@ func (s *CompileStore) compile() error {
 		}
 	}))
 
+	frameDoc := frame.ContentDocument()
+
 	if index, ok := s.app.Source.Files(path)["index.jsgo.html"]; ok {
 		// has index
 
@@ -126,10 +128,9 @@ func (s *CompileStore) compile() error {
 			return err
 		}
 
-		frameDoc := frame.ContentDocument().Underlying()
-		frameDoc.Call("open")
-		frameDoc.Call("write", buf.String())
-		frameDoc.Call("close")
+		frameDoc.Underlying().Call("open")
+		frameDoc.Underlying().Call("write", buf.String())
+		frameDoc.Underlying().Call("close")
 
 		c := make(chan struct{})
 		frame.AddEventListener("load", false, func(event dom.Event) {
@@ -138,14 +139,14 @@ func (s *CompileStore) compile() error {
 		<-c
 	}
 
-	content := frame.ContentDocument()
-	head := content.GetElementsByTagName("head")[0].(*dom.BasicHTMLElement)
+	head := frameDoc.GetElementsByTagName("head")[0].(*dom.BasicHTMLElement)
 
 	loaderJs := ""
 	for _, dep := range deps {
 		loaderJs += "$load[" + strconv.Quote(dep.Path) + "]();\n"
 	}
-	scriptLoad := doc.CreateElement("script")
+	scriptLoad := frameDoc.CreateElement("script")
+	scriptLoad.SetID("loader")
 	scriptLoad.SetInnerHTML(`
 		var $load = {};
 		var $count = 0;
@@ -168,7 +169,7 @@ func (s *CompileStore) compile() error {
 	head.AppendChild(scriptLoad)
 
 	for _, dep := range deps {
-		scriptDep := doc.CreateElement("script").(*dom.HTMLScriptElement)
+		scriptDep := frameDoc.CreateElement("script")
 		scriptDep.SetID(dep.Path)
 		scriptDep.SetInnerHTML(string(dep.Js) + "$done();")
 		//scriptDep.AppendChild(doc.CreateTextNode(string(dep.Js) + "$done();"))
