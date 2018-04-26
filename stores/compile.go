@@ -146,29 +146,38 @@ func (s *CompileStore) compile() error {
 	scriptPrelude.SetInnerHTML(prelude.Prelude)
 	head.AppendChild(scriptPrelude)
 
-	scriptLoad := doc.CreateElement("script")
-	scriptLoad.SetInnerHTML(`var $load = {};`)
-	head.AppendChild(scriptLoad)
-
 	loaderJs := ""
 	for _, dep := range deps {
-		scriptDep := doc.CreateElement("script")
-		scriptDep.SetInnerHTML(string(dep.Js))
-		head.AppendChild(scriptDep)
 		loaderJs += "$load[" + strconv.Quote(dep.Path) + "]();\n"
 	}
-
-	mainQuoted := strconv.Quote(path)
-
-	scriptInit := doc.CreateElement("script")
-	scriptInit.SetInnerHTML(loaderJs + `
-		$mainPkg = $packages[` + mainQuoted + `];
-		$synthesizeMethods();
-		$packages["runtime"].$init();
-		$go($mainPkg.$init, []);
-		$flushConsole();
+	scriptLoad := doc.CreateElement("script")
+	scriptLoad.SetInnerHTML(`
+		var $load = {};
+		var $count = 0;
+		var $total = ` + fmt.Sprint(len(deps)) + `;
+		var $finished = function() {
+			` + loaderJs + `
+			$mainPkg = $packages[` + strconv.Quote(path) + `];
+			$synthesizeMethods();
+			$packages["runtime"].$init();
+			$go($mainPkg.$init, []);
+			$flushConsole();
+		};
+		var $done = function() {
+			$count++;
+			if ($count == $total) {
+				$finished();
+			}
+		};
 	`)
-	head.AppendChild(scriptInit)
+	head.AppendChild(scriptLoad)
+
+	for _, dep := range deps {
+		scriptDep := doc.CreateElement("script")
+		scriptDep.SetID(dep.Path)
+		scriptDep.SetInnerHTML(string(dep.Js) + "$done();")
+		head.AppendChild(scriptDep)
+	}
 
 	s.compiled = true
 	s.app.Log()

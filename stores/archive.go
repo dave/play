@@ -37,13 +37,9 @@ type ArchiveStore struct {
 }
 
 type CacheItem struct {
-	Hash string
-
-	Archive *compiler.Archive
-
-	// for standard library packages, archive is stripped of all JS, and JS is downloaded separately
-	// to benefit from browser caching
-	Js []byte
+	Hash    string
+	Archive *compiler.Archive // This archive is stripped of JS
+	Js      []byte
 }
 
 func NewArchiveStore(app *App) *ArchiveStore {
