@@ -13,7 +13,6 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
-	"github.com/gopherjs/gopherjs/compiler/prelude"
 	"github.com/gopherjs/gopherjs/js"
 	"honnef.co/go/js/dom"
 )
@@ -142,10 +141,6 @@ func (s *CompileStore) compile() error {
 	content := frame.ContentDocument()
 	head := content.GetElementsByTagName("head")[0].(*dom.BasicHTMLElement)
 
-	scriptPrelude := doc.CreateElement("script")
-	scriptPrelude.SetInnerHTML(prelude.Prelude)
-	head.AppendChild(scriptPrelude)
-
 	loaderJs := ""
 	for _, dep := range deps {
 		loaderJs += "$load[" + strconv.Quote(dep.Path) + "]();\n"
@@ -173,9 +168,10 @@ func (s *CompileStore) compile() error {
 	head.AppendChild(scriptLoad)
 
 	for _, dep := range deps {
-		scriptDep := doc.CreateElement("script")
+		scriptDep := doc.CreateElement("script").(*dom.HTMLScriptElement)
 		scriptDep.SetID(dep.Path)
 		scriptDep.SetInnerHTML(string(dep.Js) + "$done();")
+		//scriptDep.AppendChild(doc.CreateTextNode(string(dep.Js) + "$done();"))
 		head.AppendChild(scriptDep)
 	}
 

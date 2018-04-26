@@ -59,7 +59,10 @@ func (s *ArchiveStore) Compile(path string) ([]Dep, error) {
 	done := make(map[string]bool)
 	archives := map[string]*compiler.Archive{}
 	packages := map[string]*types.Package{}
-	var jsdeps []Dep
+	jsdeps := []Dep{
+		// Always start with the prelude
+		{Path: "prelude", Js: s.cache["prelude"].Js},
+	}
 	var deps []*compiler.Archive
 	var compile func(path string) error
 	compile = func(path string) error {
@@ -191,6 +194,10 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				getwait.Add(2)
 				go func() {
 					defer getwait.Done()
+					if message.Path == "prelude" {
+						// prelude doesn't have an archive file
+						return
+					}
 					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.x", config.Protocol, config.PkgHost, message.Path, message.Hash))
 					if err != nil {
 						s.app.Fail(err)
@@ -219,7 +226,12 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				}()
 				getwait.Wait()
 				s.cache[message.Path] = c
-				s.app.Log(c.Archive.Name)
+				if message.Path == "prelude" {
+					// prelude doesn't have an archive file
+					s.app.Log("prelude")
+				} else {
+					s.app.Log(c.Archive.Name)
+				}
 			}()
 			return true
 		case messages.Index:
