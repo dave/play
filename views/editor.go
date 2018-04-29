@@ -3,6 +3,8 @@ package views
 import (
 	"time"
 
+	"strings"
+
 	"github.com/dave/play/actions"
 	"github.com/dave/play/stores"
 	"github.com/gopherjs/gopherjs/js"
@@ -27,6 +29,22 @@ func NewEditor(app *stores.App) *Editor {
 	return v
 }
 
+func getEditorMode(filename string) string {
+	filename = strings.ToLower(filename)
+	switch {
+	case strings.HasSuffix(filename, ".go"):
+		return "ace/mode/golang"
+	case strings.HasSuffix(filename, ".html"):
+		return "ace/mode/html"
+	case strings.HasSuffix(filename, ".js"):
+		return "ace/mode/javascript"
+	case strings.HasSuffix(filename, ".md"):
+		return "ace/mode/markdown"
+	default:
+		return "ace/mode/plain_text"
+	}
+}
+
 func (v *Editor) Mount() {
 	v.app.Watch(v, func(done chan struct{}) {
 		defer close(done)
@@ -35,6 +53,13 @@ func (v *Editor) Mount() {
 			v.editor.SetValue(v.app.Source.Current())
 			v.editor.ClearSelection()
 			v.editor.MoveCursorTo(0, 0)
+		}
+		correctMode := getEditorMode(v.app.Editor.CurrentFile())
+		currentMode := v.editor.GetOption("mode").String()
+		if correctMode != currentMode {
+			v.editor.SetOptions(map[string]interface{}{
+				"mode": correctMode,
+			})
 		}
 	})
 

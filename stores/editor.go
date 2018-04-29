@@ -64,6 +64,12 @@ func (s *EditorStore) defaultFile(path string) string {
 	if len(s.app.Source.Files(path)) == 0 {
 		return ""
 	}
+	if _, ok := s.app.Source.Files(path)["README.md"]; ok {
+		return "README.md"
+	}
+	if _, ok := s.app.Source.Files(path)["readme.md"]; ok {
+		return "readme.md"
+	}
 	if _, ok := s.app.Source.Files(path)["main.go"]; ok {
 		return "main.go"
 	}

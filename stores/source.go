@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/dave/flux"
+	"github.com/dave/jsgo/config"
 	"github.com/dave/play/actions"
 	"github.com/dave/saver"
 )
@@ -174,7 +175,7 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 		changed := map[string]map[string]bool{}
 		for path, files := range packages {
 			for name, contents := range files {
-				if !strings.HasSuffix(name, ".go") && !strings.HasSuffix(name, ".jsgo.html") && !strings.HasSuffix(name, ".inc.js") {
+				if !isValidFile(name) {
 					continue
 				}
 				if s.source[path] == nil {
@@ -319,4 +320,13 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 		}
 	}
 	return true
+}
+
+func isValidFile(name string) bool {
+	for _, ext := range config.ValidExtensions {
+		if strings.HasSuffix(name, ext) {
+			return true
+		}
+	}
+	return false
 }
