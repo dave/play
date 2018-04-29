@@ -133,9 +133,15 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 			}
 			for _, file := range zr.File {
 				path, name := filepath.Split(file.Name)
+				if !isValidFile(name) {
+					continue
+				}
 				path = strings.Trim(path, "/")
 				if path == "" {
 					path = s.app.Editor.CurrentPackage()
+				}
+				if path == "" {
+					path = "main"
 				}
 				fr, err := file.Open()
 				if err != nil {
@@ -156,9 +162,15 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 			}
 		} else {
 			for _, f := range a.Files {
+				if !isValidFile(f.Name()) {
+					continue
+				}
 				path := strings.Trim(f.Dir(), "/")
 				if path == "" {
 					path = s.app.Editor.CurrentPackage()
+				}
+				if path == "" {
+					path = "main"
 				}
 				b, err := ioutil.ReadAll(f.Reader())
 				if err != nil {
@@ -175,9 +187,6 @@ func (s *SourceStore) Handle(payload *flux.Payload) bool {
 		changed := map[string]map[string]bool{}
 		for path, files := range packages {
 			for name, contents := range files {
-				if !isValidFile(name) {
-					continue
-				}
 				if s.source[path] == nil {
 					s.source[path] = map[string]string{}
 				}
