@@ -65,7 +65,35 @@ func (v *Editor) Mount() {
 
 	v.editor = ace.Edit("editor")
 	v.editor.SetOptions(map[string]interface{}{
-		"mode": "ace/mode/golang",
+		"mode":          "ace/mode/golang",
+		"enableLinking": true,
+	})
+	v.editor.On("linkClick", func(d *js.Object) {
+		data, ok := d.Interface().(map[string]interface{})
+		if !ok {
+			return
+		}
+		token, ok := data["token"].(map[string]interface{})
+		if !ok {
+			return
+		}
+		t, ok := token["type"].(string)
+		if !ok {
+			return
+		}
+		if t != "markup.underline" {
+			return
+		}
+		value, ok := token["value"].(string)
+		if !ok {
+			return
+		}
+		if v.app.Source.HasFile(v.app.Editor.CurrentPackage(), value) {
+			v.app.Dispatch(&actions.ChangeFile{
+				Path: v.app.Editor.CurrentPackage(),
+				Name: value,
+			})
+		}
 	})
 
 	dom.GetWindow().AddEventListener("resize", false, func(event dom.Event) {
