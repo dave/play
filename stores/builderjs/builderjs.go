@@ -117,6 +117,16 @@ func compileFiles(fset *token.FileSet, path string, sourceFiles map[string]strin
 	if err != nil {
 		return nil, err
 	}
+
+	for name, contents := range sourceFiles {
+		if !strings.HasSuffix(name, ".inc.js") {
+			continue
+		}
+		archive.IncJSCode = append(archive.IncJSCode, []byte("\t(function() {\n")...)
+		archive.IncJSCode = append(archive.IncJSCode, []byte(contents)...)
+		archive.IncJSCode = append(archive.IncJSCode, []byte("\n\t}).call($global);\n")...)
+	}
+
 	return archive, nil
 }
 

@@ -241,6 +241,10 @@ func (s *ScannerStore) checkForClash() bool {
 
 func (s *ScannerStore) refresh(path, filename, contents string) bool {
 
+	if !strings.HasSuffix(filename, ".go") {
+		return false
+	}
+
 	if strings.HasSuffix(filename, "_test.go") {
 		return false
 	}
