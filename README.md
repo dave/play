@@ -4,6 +4,8 @@ Edit and run Go code, compiled to JS using GopherJS, supporting arbitrary import
 
 https://play.jsgo.io/
 
+[<img width="500" alt="title936803092" src="https://user-images.githubusercontent.com/925351/39423295-7b461464-4c71-11e8-9565-6c860e8642e8.png">](https://play.jsgo.io/)
+
 # Demos
 * https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/flappy
 * https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/2048
@@ -16,10 +18,10 @@ https://play.jsgo.io/
 ### Initialise
 The URL can be used to initialise with code in several ways:
 
-* Load a Go package with `play.jsgo.io/{{ Package path }}`
-* Load a Github Gist with `play.jsgo.io/gist.github.com/{{ Gist ID }}`
-* Load a shared project with `play.jsgo.io/{{ Share ID }}`
-* Load a Golang playground (`play.golang.org`) share with `play.jsgo.io/p/{{ Golang playground ID }}`
+* Load a Go package with `/{{ Package path }}`
+* Load a Github Gist with `/gist.github.com/{{ Gist ID }}`
+* Load a shared project with `/{{ Share ID }}`
+* Load a `play.golang.org` share with `/p/{{ Go playground ID }}`
 
 ### Run
 <img width="150" alt="run" src="https://user-images.githubusercontent.com/925351/39422110-550c650a-4c6c-11e8-9353-050f823c6201.png">
