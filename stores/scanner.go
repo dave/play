@@ -12,6 +12,7 @@ import (
 
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
+	"github.com/dave/play/stores/builderjs"
 )
 
 func NewScannerStore(app *App) *ScannerStore {
@@ -241,18 +242,22 @@ func (s *ScannerStore) checkForClash() bool {
 
 func (s *ScannerStore) refresh(path, filename, contents string) bool {
 
-	if !strings.HasSuffix(filename, ".go") {
+	include, err := builderjs.Include(filename, contents, s.app.Compile.Tags())
+	if err != nil {
+		// ignore errors (we never want to throw an error while we're scanning the source)
 		return false
 	}
-
-	if strings.HasSuffix(filename, "_test.go") {
+	if !include {
 		return false
 	}
 
 	fset := token.NewFileSet()
 
-	// ignore errors
-	f, _ := parser.ParseFile(fset, filename, contents, parser.ImportsOnly)
+	f, err := parser.ParseFile(fset, filename, contents, parser.ImportsOnly)
+	if err != nil {
+		// ignore errors (we never want to throw an error while we're scanning the source)
+		return false
+	}
 
 	name := f.Name.Name
 
@@ -264,8 +269,11 @@ func (s *ScannerStore) refresh(path, filename, contents string) bool {
 
 	var imports []string
 	for _, v := range f.Imports {
-		// ignore errors
-		unquoted, _ := strconv.Unquote(v.Path.Value)
+		unquoted, err := strconv.Unquote(v.Path.Value)
+		if err != nil {
+			// ignore errors (we never want to throw an error while we're scanning the source)
+			continue
+		}
 		imports = append(imports, unquoted)
 	}
 	sort.Strings(imports)

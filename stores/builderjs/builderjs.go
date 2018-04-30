@@ -2,6 +2,7 @@ package builderjs
 
 import (
 	"context"
+	"go/build"
 	"go/token"
 	"go/types"
 	"sort"
@@ -20,7 +21,7 @@ import (
 	"golang.org/x/tools/go/gcexportdata"
 )
 
-func BuildPackage(path string, source map[string]map[string]string, deps []*compiler.Archive, minify bool, archives map[string]*compiler.Archive, packages map[string]*types.Package) (*compiler.Archive, error) {
+func BuildPackage(path string, source map[string]map[string]string, tags []string, deps []*compiler.Archive, minify bool, archives map[string]*compiler.Archive, packages map[string]*types.Package) (*compiler.Archive, error) {
 
 	for _, a := range deps {
 		if archives[a.ImportPath] == nil {
@@ -48,7 +49,7 @@ func BuildPackage(path string, source map[string]map[string]string, deps []*comp
 			sourceFiles, ok := source[imp]
 			if ok {
 				// We have the source for this dep
-				archive, err := compileFiles(fset, imp, sourceFiles, importContext, minify)
+				archive, err := compileFiles(fset, imp, tags, sourceFiles, importContext, minify)
 				if err != nil {
 					return nil, err
 				}
@@ -58,46 +59,23 @@ func BuildPackage(path string, source map[string]map[string]string, deps []*comp
 		},
 	}
 
-	archive, err := compileFiles(fset, path, source[path], importContext, minify)
+	archive, err := importContext.Import(path)
 	if err != nil {
 		return nil, err
 	}
 
-	/*
-		for _, jsFile := range pkg.JSFiles {
-			fname := filepath.Join(pkg.Dir, jsFile)
-			fs := s.Filesystem(fname)
-			code, err := readFile(fs, fname)
-			if err != nil {
-				return nil, err
-			}
-			archive.IncJSCode = append(archive.IncJSCode, []byte("\t(function() {\n")...)
-			archive.IncJSCode = append(archive.IncJSCode, code...)
-			archive.IncJSCode = append(archive.IncJSCode, []byte("\n\t}).call($global);\n")...)
-		}
-	*/
-
-	/*
-		if s.options.Verbose {
-			show := true
-			if s.options.Standard != nil {
-				if _, ok := s.options.Standard[importPath]; ok {
-					show = false
-				}
-			}
-			if show {
-				fmt.Fprintln(s.options.Log, importPath)
-			}
-		}
-	*/
-
 	return archive, nil
 }
 
-func compileFiles(fset *token.FileSet, path string, sourceFiles map[string]string, importContext *compiler.ImportContext, minify bool) (*compiler.Archive, error) {
+func compileFiles(fset *token.FileSet, path string, tags []string, sourceFiles map[string]string, importContext *compiler.ImportContext, minify bool) (*compiler.Archive, error) {
 	var files []*ast.File
+	inc := newIncluder(sourceFiles, tags)
 	for name, contents := range sourceFiles {
-		if !strings.HasSuffix(name, ".go") {
+		include, err := inc.include(name)
+		if err != nil {
+			return nil, err
+		}
+		if !include {
 			continue
 		}
 		f, err := parser.ParseFile(fset, name, contents, parser.ParseComments)
@@ -105,6 +83,10 @@ func compileFiles(fset *token.FileSet, path string, sourceFiles map[string]strin
 			return nil, err
 		}
 		files = append(files, f)
+	}
+
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no buildable Go source files in %s", path)
 	}
 
 	// TODO: Remove this when https://github.com/gopherjs/gopherjs/pull/742 is merged
@@ -148,12 +130,8 @@ func GetPackageCode(ctx context.Context, archive *compiler.Archive, minify, init
 			return nil, nil, err
 		}
 	}
-	if WithCancel(ctx, func() {
-		err = compiler.WritePkgCode(archive, dceSelection, minify, &compiler.SourceMapFilter{Writer: buf})
-	}) {
-		return nil, nil, ctx.Err()
-	}
-	if err != nil {
+
+	if err := compiler.WritePkgCode(archive, dceSelection, minify, &compiler.SourceMapFilter{Writer: buf}); err != nil {
 		return nil, nil, err
 	}
 
@@ -186,19 +164,31 @@ func GetPackageCode(ctx context.Context, archive *compiler.Archive, minify, init
 	return buf.Bytes(), sha.Sum(nil), nil
 }
 
-// WithCancel executes the provided function, but returns early with true if the context cancellation
-// signal was recieved.
-func WithCancel(ctx context.Context, f func()) bool {
-
-	finished := make(chan struct{})
-	go func() {
-		f()
-		close(finished)
-	}()
-	select {
-	case <-finished:
-		return false
-	case <-ctx.Done():
-		return true
+func newIncluder(source map[string]string, tags []string) *includer {
+	return &includer{
+		source: source,
+		tags:   tags,
+		bctx:   NewBuildContext(source, tags),
 	}
+}
+
+type includer struct {
+	bctx   *build.Context
+	source map[string]string
+	tags   []string
+}
+
+func (i *includer) include(name string) (bool, error) {
+	if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+		return false, nil
+	}
+	match, err := i.bctx.MatchFile("/", name)
+	if err != nil {
+		return false, err
+	}
+	return match, nil
+}
+
+func Include(name, contents string, tags []string) (bool, error) {
+	return newIncluder(map[string]string{name: contents}, tags).include(name)
 }

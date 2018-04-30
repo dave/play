@@ -55,7 +55,7 @@ type Dep struct {
 	Js   []byte
 }
 
-func (s *ArchiveStore) Compile(path string) ([]Dep, error) {
+func (s *ArchiveStore) Compile(path string, tags []string) ([]Dep, error) {
 	done := make(map[string]bool)
 	archives := map[string]*compiler.Archive{}
 	packages := map[string]*types.Package{}
@@ -78,6 +78,7 @@ func (s *ArchiveStore) Compile(path string) ([]Dep, error) {
 			archive, err := builderjs.BuildPackage(
 				path,
 				s.app.Source.Source(),
+				tags,
 				deps,
 				s.app.Page.Minify(),
 				archives,

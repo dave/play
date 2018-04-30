@@ -29,6 +29,11 @@ type CompileStore struct {
 	compiling      bool
 	compiled       bool
 	consoleWritten bool
+	tags           []string
+}
+
+func (s *CompileStore) Tags() []string {
+	return s.tags
 }
 
 func (s *CompileStore) Compiling() bool {
@@ -75,7 +80,7 @@ func (s *CompileStore) compile() error {
 
 	s.app.Log("compiling")
 
-	deps, err := s.app.Archive.Compile(path)
+	deps, err := s.app.Archive.Compile(path, s.Tags())
 	if err != nil {
 		return err
 	}
