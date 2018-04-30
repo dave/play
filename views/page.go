@@ -159,6 +159,38 @@ const Styles = `
 		margin-left: 20px;
 		margin-bottom: 30px;
 	}
+	#help-modal h2 { 
+		padding-bottom: 0.3em;
+    	font-size: 1.5em;
+    	border-bottom: 1px solid #eaecef;
+
+		margin-top: 24px;
+		margin-bottom: 16px;
+		font-weight: 600;
+		line-height: 1.25;
+	}
+	#help-modal h4 {
+	    font-size: 1em;
+
+		margin-top: 24px;
+    	margin-bottom: 16px;
+    	font-weight: 600;
+    	line-height: 1.25;
+	}
+	#help-modal .modal-lg {
+		max-width: 700px;
+	}
+	#help-modal a {
+		color: #0366d6;
+	}
+	#help-modal code {
+		padding: 0.2em 0.4em;
+		margin: 0;
+		font-size: 85%;
+		background-color: rgba(27,31,35,0.05);
+		border-radius: 3px;
+		color: #24292e;
+	}
 `
 
 func (v *Page) Render() vecty.ComponentOrHTML {
