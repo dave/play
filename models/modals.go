@@ -11,6 +11,7 @@ const (
 	LoadPackageModal   Modal = "load-package-modal"
 	RemovePackageModal Modal = "remove-package-modal"
 	BuildTagsModal     Modal = "build-tags-modal"
+	HelpModal          Modal = "help-modal"
 )
 
 type RequestType string

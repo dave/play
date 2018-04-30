@@ -20,6 +20,7 @@ type Modal struct {
 	body   []vecty.MarkupOrChild // This should be set on every Render
 	shown  func()
 	hidden func()
+	large  bool
 }
 
 func (m *Modal) Mount() {
@@ -77,6 +78,11 @@ func (m *Modal) Build() vecty.ComponentOrHTML {
 		okDisplay = "none"
 	}
 
+	modalClass := vecty.Class("modal-dialog")
+	if m.large {
+		modalClass = vecty.Class("modal-dialog", "modal-lg")
+	}
+
 	return elem.Div(
 		vecty.Markup(
 			prop.ID(string(m.id)),
@@ -86,7 +92,7 @@ func (m *Modal) Build() vecty.ComponentOrHTML {
 		),
 		elem.Div(
 			vecty.Markup(
-				vecty.Class("modal-dialog"),
+				modalClass,
 				vecty.Property("role", "dialog"),
 			),
 			elem.Div(

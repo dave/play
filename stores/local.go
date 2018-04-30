@@ -53,6 +53,19 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 
 		location := strings.Trim(dom.GetWindow().Location().Pathname, "/")
 
+		var seenHelp bool
+		if _, err := s.local.Find("seen-help", &seenHelp); err != nil {
+			s.app.Fail(err)
+			return true
+		}
+		if !seenHelp {
+			s.app.Dispatch(&actions.ModalOpen{Modal: models.HelpModal})
+			if err := s.local.Save("seen-help", true); err != nil {
+				s.app.Fail(err)
+				return true
+			}
+		}
+
 		// No page path -> load files from local storage or use default files
 		if location == "" {
 			var currentPackage, currentFile string
