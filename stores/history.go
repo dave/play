@@ -24,7 +24,8 @@ func (s *HistoryStore) Handle(payload *flux.Payload) bool {
 		*actions.DeleteFile,
 		*actions.AddPackage,
 		*actions.RemovePackage,
-		*actions.DragDrop:
+		*actions.DragDrop,
+		*actions.BuildTags:
 		js.Global.Get("history").Call("replaceState", js.M{}, "", "/")
 	case *actions.LoadSource:
 		if a.Save {

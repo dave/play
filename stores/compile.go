@@ -45,12 +45,18 @@ func (s *CompileStore) Compiled() bool {
 }
 
 func (s *CompileStore) Handle(payload *flux.Payload) bool {
-	switch payload.Action.(type) {
+	switch a := payload.Action.(type) {
+	case *actions.LoadSource:
+		s.tags = append(s.tags, a.Tags...)
+		payload.Notify()
 	case *actions.CompileStart:
 		if err := s.compile(); err != nil {
 			s.app.Fail(err)
 			return true
 		}
+		payload.Notify()
+	case *actions.BuildTags:
+		s.tags = a.Tags
 		payload.Notify()
 	}
 	return true

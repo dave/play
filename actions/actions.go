@@ -23,6 +23,7 @@ type ChangeFile struct {
 
 type LoadSource struct {
 	Source         map[string]map[string]string
+	Tags           []string
 	CurrentPackage string
 	CurrentFile    string
 	Save           bool // Save directly after loading? false during initialising, true for load package.
@@ -41,6 +42,7 @@ type ModalOpen struct{ Modal models.Modal }
 type ModalClose struct{ Modal models.Modal }
 
 type DownloadClick struct{}
+type BuildTags struct{ Tags []string }
 
 type AddFile struct{ Name string }
 type AddPackage struct{ Path string }

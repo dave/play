@@ -10,6 +10,7 @@ const (
 	DeployDoneModal    Modal = "deploy-done-modal"
 	LoadPackageModal   Modal = "load-package-modal"
 	RemovePackageModal Modal = "remove-package-modal"
+	BuildTagsModal     Modal = "build-tags-modal"
 )
 
 type RequestType string

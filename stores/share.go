@@ -34,6 +34,7 @@ func (s *ShareStore) Handle(payload *flux.Payload) bool {
 	case *actions.ShareOpen:
 		message := messages.Share{
 			Source: s.app.Source.Source(),
+			Tags:   s.app.Compile.Tags(),
 		}
 		s.app.Dispatch(&actions.Send{
 			Message: message,

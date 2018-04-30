@@ -43,6 +43,7 @@ func (s *RequestStore) Handle(payload *flux.Payload) bool {
 				Source: s.app.Source.Source(),
 				Cache:  s.app.Archive.CacheStrings(),
 				Minify: s.app.Page.Minify(),
+				Tags:   s.app.Compile.Tags(),
 			}
 		case models.InitialiseRequest:
 			message = messages.Initialise{

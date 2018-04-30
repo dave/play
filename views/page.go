@@ -174,6 +174,7 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 		NewDeployDoneModal(v.app),
 		NewLoadPackageModal(v.app),
 		NewClashWarningModal(v.app),
+		NewBuildTagsModal(v.app),
 		elem.Anchor(
 			vecty.Markup(
 				prop.Href("https://github.com/dave/play"),

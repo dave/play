@@ -135,6 +135,29 @@ func (s *ScannerStore) AllImportsOrdered() []string {
 
 func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 	switch action := payload.Action.(type) {
+	case *actions.BuildTags:
+		payload.Wait(s.app.Compile)
+
+		s.imports = map[string]map[string][]string{}
+		s.names = map[string]string{}
+
+		var changed bool
+		for path, files := range s.app.Source.Source() {
+			for name, contents := range files {
+				if s.refresh(path, name, contents) {
+					changed = true
+				}
+			}
+		}
+
+		if s.checkForClash() {
+			changed = true
+		}
+
+		if changed {
+			payload.Notify()
+		}
+
 	case *actions.DeleteFile:
 		delete(s.imports[s.app.Editor.CurrentPackage()], action.Name)
 		payload.Notify()
@@ -151,6 +174,7 @@ func (s *ScannerStore) Handle(payload *flux.Payload) bool {
 		}
 	case *actions.LoadSource:
 		payload.Wait(s.app.Source)
+		payload.Wait(s.app.Compile)
 
 		for path := range action.Source {
 			delete(s.imports, path)

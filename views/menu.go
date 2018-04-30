@@ -1,6 +1,8 @@
 package views
 
 import (
+	"fmt"
+
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
@@ -30,6 +32,11 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 	clashWarningDisplay := "none"
 	if len(v.app.Scanner.Clashes()) > 0 {
 		clashWarningDisplay = ""
+	}
+
+	buildTagsText := "Build tags..."
+	if len(v.app.Compile.Tags()) > 0 {
+		buildTagsText = fmt.Sprintf("Build tags (%d)...", len(v.app.Compile.Tags()))
 	}
 
 	return elem.Navigation(
@@ -236,6 +243,16 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 							),
 							vecty.Text("Minify JS"),
 						),
+					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
+							prop.Href(""),
+							event.Click(func(e *vecty.Event) {
+								v.app.Dispatch(&actions.ModalOpen{Modal: models.BuildTagsModal})
+							}).PreventDefault(),
+						),
+						vecty.Text(buildTagsText),
 					),
 					elem.Div(
 						vecty.Markup(

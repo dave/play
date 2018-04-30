@@ -56,6 +56,7 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 		// No page path -> load files from local storage or use default files
 		if location == "" {
 			var currentPackage, currentFile string
+			var buildTags []string
 			var source map[string]map[string]string
 			found, err = s.local.Find("source", &source)
 			if err != nil {
@@ -84,6 +85,10 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 					s.app.Fail(err)
 					return true
 				}
+				if _, err := s.local.Find("build-tags", &buildTags); err != nil {
+					s.app.Fail(err)
+					return true
+				}
 			} else {
 				// if we didn't find source in the local storage, add the default file
 				source = map[string]map[string]string{"main": {"main.go": defaultFile}}
@@ -94,6 +99,7 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 				Source:         source,
 				CurrentFile:    currentFile,
 				CurrentPackage: currentPackage,
+				Tags:           buildTags,
 				Update:         true,
 			})
 			break
@@ -117,6 +123,7 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 			}
 			s.app.Dispatch(&actions.LoadSource{
 				Source: m.Source,
+				Tags:   m.Tags,
 				Update: true,
 			})
 			break
@@ -132,6 +139,12 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 		}
 	case *actions.UserChangedText, *actions.FormatCode:
 		payload.Wait(s.app.Editor)
+		if err := s.saveSource(); err != nil {
+			s.app.Fail(err)
+			return true
+		}
+	case *actions.BuildTags:
+		payload.Wait(s.app.Compile)
 		if err := s.saveSource(); err != nil {
 			s.app.Fail(err)
 			return true
@@ -181,6 +194,9 @@ func (s *LocalStore) saveSource() error {
 		return err
 	}
 	if err := s.local.Save("current-file", s.app.Editor.CurrentFile()); err != nil {
+		return err
+	}
+	if err := s.local.Save("build-tags", s.app.Compile.Tags()); err != nil {
 		return err
 	}
 	return nil

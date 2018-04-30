@@ -60,6 +60,7 @@ func (s *DeployStore) Handle(payload *flux.Payload) bool {
 			Main:    s.mainPath,
 			Imports: s.app.Scanner.Imports(s.mainPath),
 			Source:  s.app.Source.Source(),
+			Tags:    s.app.Compile.Tags(),
 		}
 		s.app.Dispatch(&actions.Send{
 			Message: message,
