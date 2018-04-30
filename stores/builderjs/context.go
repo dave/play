@@ -14,7 +14,7 @@ import (
 
 func NewBuildContext(source map[string]string, tags []string) *build.Context {
 
-	tags = append(tags, "netgo", "purego", "jsgo")
+	tags = append(tags, "js", "netgo", "purego", "jsgo")
 
 	b := &build.Context{
 		GOARCH:        "js",     // Target architecture
