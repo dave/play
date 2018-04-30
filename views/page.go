@@ -152,6 +152,13 @@ const Styles = `
 		vertical-align: text-top;
 		fill: currentColor;
 	}
+	#help-modal table { 
+		clear: both;
+	}
+	#help-modal img { 
+		margin-left: 20px;
+		margin-bottom: 30px;
+	}
 `
 
 func (v *Page) Render() vecty.ComponentOrHTML {
