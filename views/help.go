@@ -49,10 +49,6 @@ func (v *HelpModal) action(*vecty.Event) {
 var helpMarkdown = `
 Edit and run Go code, compiled to JS using GopherJS, supporting arbitrary import paths!
 
-https://play.jsgo.io/
-
-[<img width="500" alt="title936803092" src="https://user-images.githubusercontent.com/925351/39423295-7b461464-4c71-11e8-9565-6c860e8642e8.png">](https://play.jsgo.io/)
-
 ## Demos
 * https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/flappy
 * https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/2048
