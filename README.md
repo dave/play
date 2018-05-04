@@ -1,8 +1,20 @@
-Edit and run Go code, compiled to JS using GopherJS, supporting arbitrary import paths!
+Edit and run Go in the browser, supporting arbitrary import paths!
 
 https://play.jsgo.io/
 
 [<img width="500" alt="title936803092" src="https://user-images.githubusercontent.com/925351/39423295-7b461464-4c71-11e8-9565-6c860e8642e8.png">](https://play.jsgo.io/)
+
+The jsgo playground is an extension of the jsgo compiler. The compiler allows you to easily compile Go 
+to JS using GopherJS, and automatically host the results in an aggressively cached CDN. The playground 
+adds an online editor and many other features (see below).
+
+The unique feature of the jsgo playground is that it supports arbitrary import paths. Other Go playgrounds 
+are limited to just the Go standard library.
+
+For more for more info:
+
+* jsgo compiler: https://github.com/dave/jsgo  
+* jsgo playground: https://github.com/dave/play  
 
 ## Demos
 
@@ -17,8 +29,8 @@ work flawlessly in the browser:
 * https://play.jsgo.io/github.com/dave/zip
 * https://play.jsgo.io/github.com/dave/img 
 
-The amazing [ebiten](https://github.com/hajimehoshi/ebiten) 2D games library is a perfect example of the
-power of Go in the browser. Here's some demos: 
+The amazing ebiten 2D games library is a perfect example of the power of Go in the browser. Here's some 
+demos: 
 
 * https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/2048
 * https://play.jsgo.io/github.com/hajimehoshi/go-inovation
@@ -72,7 +84,6 @@ on `src.jsgo.io` and the page will update to a sharable URL.
 
 <table></table>
 
-<img align="right" width="150" alt="deploy2-250" src="https://user-images.githubusercontent.com/925351/39422101-53f5fb9a-4c6c-11e8-9f80-90914eab4dd1.png">
 <img align="right" width="150" alt="deploy" src="https://user-images.githubusercontent.com/925351/39422100-53ddecf8-4c6c-11e8-820c-4115472d4b8c.png">
 
 #### Deploy
@@ -87,7 +98,6 @@ own website. See [github.com/dave/jsgo](https://github.com/dave/jsgo) for more i
 
 <table></table>
 
-<img align="right" width="150" alt="console1" src="https://user-images.githubusercontent.com/925351/39422097-53ac0026-4c6c-11e8-9cbf-aa08411ff02d.png">
 <img align="right" width="150" alt="console" src="https://user-images.githubusercontent.com/925351/39422096-53904c3c-4c6c-11e8-94f6-2c8f62c1f9a3.png">
 
 #### Console
@@ -103,7 +113,6 @@ In normal usage, all JS is minified. For debugging, this can be toggled with the
 
 <table></table>
 
-<img align="right" width="150" alt="tags2" src="https://user-images.githubusercontent.com/925351/39422114-5560a214-4c6c-11e8-987b-842620eb7abe.png">
 <img align="right" width="150" alt="tags" src="https://user-images.githubusercontent.com/925351/39422112-554002fc-4c6c-11e8-8c2a-79b8e1f13045.png">
 
 #### Build tags
@@ -164,7 +173,6 @@ Add an empty package with the `Add package` option.
 
 <table></table>
 
-<img align="right" width="150" alt="load-package-1" src="https://user-images.githubusercontent.com/925351/39422297-0fdaff90-4c6d-11e8-9d72-0f21e07e5d3a.png">
 <img align="right" width="150" alt="load-package" src="https://user-images.githubusercontent.com/925351/39422106-5480ef70-4c6c-11e8-97ce-cb169cf2219b.png">
 
 #### Load package
