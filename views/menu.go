@@ -94,43 +94,45 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 				elem.Span(
 					vecty.Markup(
 						vecty.Class("navbar-text"),
+						vecty.Style("margin-right", "10px"),
 						prop.ID("message"),
 					),
 					vecty.Text(""),
 				),
 			),
-			elem.ListItem(
-				vecty.Markup(
-					vecty.Class("nav-item"),
-				),
-				elem.Anchor(
+			/*
+				elem.ListItem(
 					vecty.Markup(
-						prop.Href(""),
-						//vecty.Style("margin-right", "5px"),
-						vecty.Class("nav-link", "octicon"),
-						event.Click(func(e *vecty.Event) {
-							v.app.Dispatch(&actions.ModalOpen{Modal: models.HelpModal})
-						}).PreventDefault(),
+						vecty.Class("nav-item"),
 					),
-					vecty.Tag(
-						"svg",
+					elem.Anchor(
 						vecty.Markup(
-							vecty.Namespace("http://www.w3.org/2000/svg"),
-							vecty.Attribute("width", "14"),
-							vecty.Attribute("height", "16"),
-							vecty.Attribute("viewBox", "0 0 14 16"),
+							prop.Href(""),
+							vecty.Class("nav-link", "octicon"),
+							event.Click(func(e *vecty.Event) {
+								v.app.Dispatch(&actions.ModalOpen{Modal: models.HelpModal})
+							}).PreventDefault(),
 						),
 						vecty.Tag(
-							"path",
+							"svg",
 							vecty.Markup(
 								vecty.Namespace("http://www.w3.org/2000/svg"),
-								vecty.Attribute("fill-rule", "evenodd"),
-								vecty.Attribute("d", "M6 10h2v2H6v-2zm4-3.5C10 8.64 8 9 8 9H6c0-.55.45-1 1-1h.5c.28 0 .5-.22.5-.5v-1c0-.28-.22-.5-.5-.5h-1c-.28 0-.5.22-.5.5V7H4c0-1.5 1.5-3 3-3s3 1 3 2.5zM7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7z"),
+								vecty.Attribute("width", "14"),
+								vecty.Attribute("height", "16"),
+								vecty.Attribute("viewBox", "0 0 14 16"),
+							),
+							vecty.Tag(
+								"path",
+								vecty.Markup(
+									vecty.Namespace("http://www.w3.org/2000/svg"),
+									vecty.Attribute("fill-rule", "evenodd"),
+									vecty.Attribute("d", "M6 10h2v2H6v-2zm4-3.5C10 8.64 8 9 8 9H6c0-.55.45-1 1-1h.5c.28 0 .5-.22.5-.5v-1c0-.28-.22-.5-.5-.5h-1c-.28 0-.5.22-.5.5V7H4c0-1.5 1.5-3 3-3s3 1 3 2.5zM7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7z"),
+								),
 							),
 						),
 					),
 				),
-			),
+			*/
 			elem.ListItem(
 				vecty.Markup(
 					vecty.Class("nav-item", "btn-group"),
@@ -304,6 +306,15 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 						vecty.Markup(
 							vecty.Class("dropdown-divider"),
 						),
+					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
+							event.Click(func(e *vecty.Event) {
+								v.app.Dispatch(&actions.ModalOpen{Modal: models.HelpModal})
+							}).PreventDefault(),
+						),
+						vecty.Text("Help"),
 					),
 					elem.Anchor(
 						vecty.Markup(
