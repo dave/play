@@ -67,17 +67,17 @@ func (v *Page) Mount() {
 
 	v.split2 = splitter.New("split")
 
-	enter, leave, drop := dropper.Initialise(dom.GetWindow().Document().GetElementByID("left"))
+	events := dropper.Initialise(dom.GetWindow().Document().GetElementByID("left"))
 	go func() {
-		for {
-			select {
-			case <-enter:
+		for ev := range events {
+			switch ev := ev.(type) {
+			case dropper.EnterEvent:
 				v.app.Dispatch(&actions.DragEnter{})
-			case <-leave:
+			case dropper.LeaveEvent:
 				v.app.Dispatch(&actions.DragLeave{})
-			case files := <-drop:
+			case dropper.DropEvent:
 				v.app.Dispatch(&actions.DragDrop{
-					Files: files,
+					Files: ev,
 				})
 			}
 		}

@@ -50,11 +50,24 @@ var helpMarkdown = `
 Edit and run Go code, compiled to JS using GopherJS, supporting arbitrary import paths!
 
 ## Demos
-* https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/flappy
-* https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/2048
-* https://play.jsgo.io/github.com/shurcooL/tictactoe/cmd/tictactoe
-* https://play.jsgo.io/github.com/dave/compress/zip
+
+Here's the simplest demo - it just writes to the console and to the page:  
+
 * https://play.jsgo.io/github.com/dave/jstest
+
+Here's a couple of simple demos that accept files by drag and drop. The first compresses dropped files to 
+a zip. The second compresses images to jpg. They use the Go standard library zip / image libraries, which 
+work flawlessly in the browser:   
+
+* https://play.jsgo.io/github.com/dave/zip
+* https://play.jsgo.io/github.com/dave/img 
+
+The amazing [ebiten](https://github.com/hajimehoshi/ebiten) 2D games library is a perfect example of the
+power of Go in the browser. Here's some demos: 
+
+* https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/2048
+* https://play.jsgo.io/github.com/hajimehoshi/go-inovation
+* https://play.jsgo.io/github.com/hajimehoshi/ebiten/examples/flappy
 
 ## Contact
 
