@@ -55,7 +55,7 @@ func (v *BuildTagsModal) Render() vecty.ComponentOrHTML {
 }
 
 func (v *BuildTagsModal) action(*vecty.Event) {
-	tags := strings.Split(v.input.Node().Get("value").String(), " ")
+	tags := strings.Fields(v.input.Node().Get("value").String())
 	v.app.Dispatch(&actions.ModalClose{Modal: models.BuildTagsModal})
 	if !compare(v.app.Compile.Tags(), tags) {
 		v.app.Dispatch(&actions.BuildTags{Tags: tags})
