@@ -23,7 +23,6 @@ func main() {
 
 func run() {
 
-	vecty.AddStylesheet("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css")
 	vecty.AddStylesheet(dataurl.New([]byte(views.Styles), "text/css").String())
 
 	app := &stores.App{}
