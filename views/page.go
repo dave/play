@@ -2,6 +2,7 @@ package views
 
 import (
 	"github.com/dave/dropper"
+	"github.com/dave/jsgo/config"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
 	"github.com/dave/play/stores"
@@ -198,6 +199,10 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 	if v.app.Compile.Compiled() {
 		githubBannerDisplay = "none"
 	}
+	forkMe := "https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"
+	if config.LOCAL {
+		forkMe = "/_local/forkme_right_gray_6d6d6d.png"
+	}
 	return elem.Body(
 		elem.Div(
 			vecty.Markup(
@@ -227,7 +232,7 @@ func (v *Page) Render() vecty.ComponentOrHTML {
 					vecty.Style("top", "0"),
 					vecty.Style("right", "0"),
 					vecty.Style("border", "0"),
-					prop.Src("https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"),
+					prop.Src(forkMe),
 					vecty.Property("alt", "Fork me on GitHub"),
 				),
 			),
