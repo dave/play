@@ -11,6 +11,7 @@ import (
 
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/play/messages"
+	"github.com/dave/jsgo/server/servermsg"
 	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/websocket/websocketjs"
@@ -77,7 +78,7 @@ func (s *ConnectionStore) Handle(payload *flux.Payload) bool {
 					return
 				}
 				s.app.Debug(fmt.Sprintf("Received %T", m), m)
-				if e, ok := m.(messages.Error); ok {
+				if e, ok := m.(servermsg.Error); ok {
 					s.app.Fail(errors.New(e.Message))
 					return
 				}

@@ -6,6 +6,7 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/play/actions"
+	"github.com/dave/services/fileserver/constor/constormsg"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -41,7 +42,7 @@ func (s *ShareStore) Handle(payload *flux.Payload) bool {
 		})
 	case *actions.ShareMessage:
 		switch message := action.Message.(type) {
-		case messages.Storing:
+		case constormsg.Storing:
 			s.app.Log("storing")
 		case messages.ShareComplete:
 			js.Global.Get("history").Call("replaceState", js.M{}, "", fmt.Sprintf("/%s", message.Hash))

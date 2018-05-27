@@ -3,9 +3,11 @@ package stores
 import (
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/play/messages"
+	"github.com/dave/jsgo/server/servermsg"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
 	"github.com/dave/services"
+	"github.com/dave/services/getter/gettermsg"
 )
 
 func NewRequestStore(app *App) *RequestStore {
@@ -57,11 +59,11 @@ func (s *RequestStore) Handle(payload *flux.Payload) bool {
 		})
 	case *actions.RequestMessage:
 		switch message := action.Message.(type) {
-		case messages.Queueing:
+		case servermsg.Queueing:
 			if message.Position > 1 {
 				s.app.Logf("queued position %d", message.Position)
 			}
-		case messages.Downloading:
+		case gettermsg.Downloading:
 			if len(message.Message) > 0 {
 				s.app.Log(message.Message)
 			}

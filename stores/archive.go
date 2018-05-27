@@ -17,10 +17,10 @@ import (
 
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/config"
-	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
 	"github.com/dave/play/stores/builderjs"
+	"github.com/dave/services/deployer/deployermsg"
 	"github.com/gopherjs/gopherjs/compiler"
 )
 
@@ -31,7 +31,7 @@ type ArchiveStore struct {
 	cache map[string]CacheItem
 
 	// index (path -> item) of the previously received update
-	index messages.Index
+	index deployermsg.Index
 
 	wait sync.WaitGroup
 }
@@ -184,7 +184,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 		}
 	case *actions.RequestMessage:
 		switch message := a.Message.(type) {
-		case messages.Archive:
+		case deployermsg.Archive:
 			s.wait.Add(1)
 			go func() {
 				defer s.wait.Done()
@@ -235,7 +235,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				}
 			}()
 			return true
-		case messages.Index:
+		case deployermsg.Index:
 			s.index = message
 		}
 	case *actions.RequestClose:

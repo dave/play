@@ -9,6 +9,9 @@ import (
 	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
+	"github.com/dave/services/builder/buildermsg"
+	"github.com/dave/services/fileserver/constor/constormsg"
+	"github.com/dave/services/getter/gettermsg"
 )
 
 func NewDeployStore(app *App) *DeployStore {
@@ -67,15 +70,15 @@ func (s *DeployStore) Handle(payload *flux.Payload) bool {
 		})
 	case *actions.DeployMessage:
 		switch message := action.Message.(type) {
-		case messages.Downloading:
+		case gettermsg.Downloading:
 			if message.Message != "" {
 				s.app.Log(message.Message)
 			}
-		case messages.Compiling:
+		case buildermsg.Building:
 			if message.Message != "" {
 				s.app.Log(message.Message)
 			}
-		case messages.Storing:
+		case constormsg.Storing:
 			s.app.Log("storing")
 		case messages.DeployComplete:
 			s.mainHash = message.Main
