@@ -2,9 +2,10 @@ package stores
 
 import (
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/server/messages"
+	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
+	"github.com/dave/services"
 )
 
 func NewRequestStore(app *App) *RequestStore {
@@ -32,7 +33,7 @@ func (s *RequestStore) Handle(payload *flux.Payload) bool {
 		})
 		payload.Notify()
 	case *actions.RequestOpen:
-		var message messages.Message
+		var message services.Message
 		switch action.Type {
 		case models.GetRequest:
 			message = messages.Get{

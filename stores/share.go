@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/server/messages"
+	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/js"
 )

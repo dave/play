@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/server/messages"
+	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/play/actions"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/websocket/websocketjs"
@@ -42,7 +42,7 @@ func (s *ConnectionStore) Handle(payload *flux.Payload) bool {
 			s.app.Fail(errors.New("connection closed"))
 			return true
 		}
-		b, err := messages.Marshal(action.Message)
+		b, _, err := messages.Marshal(action.Message)
 		if err != nil {
 			s.app.Fail(err)
 			return true
@@ -107,9 +107,9 @@ func (s *ConnectionStore) Handle(payload *flux.Payload) bool {
 func defaultUrl() string {
 	var url string
 	if strings.HasPrefix(dom.GetWindow().Document().DocumentURI(), "https://") {
-		url = "wss://compile.jsgo.io/_pg/"
+		url = "wss://compile.jsgo.io/_play/"
 	} else {
-		url = "ws://localhost:8081/_pg/"
+		url = "ws://localhost:8081/_play/"
 	}
 	return url
 }

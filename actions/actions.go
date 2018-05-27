@@ -3,8 +3,8 @@ package actions
 import (
 	"github.com/dave/dropper"
 	"github.com/dave/flux"
-	"github.com/dave/jsgo/server/messages"
 	"github.com/dave/play/models"
+	"github.com/dave/services"
 )
 
 type Load struct{}
@@ -61,7 +61,7 @@ type DragDrop struct {
 	Changed map[string]map[string]bool
 }
 
-type Send struct{ Message messages.Message }
+type Send struct{ Message services.Message }
 type Dial struct {
 	Url     string
 	Open    func() flux.ActionInterface

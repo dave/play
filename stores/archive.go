@@ -17,7 +17,7 @@ import (
 
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/config"
-	"github.com/dave/jsgo/server/messages"
+	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
 	"github.com/dave/play/stores/builderjs"
