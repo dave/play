@@ -199,7 +199,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 						// prelude doesn't have an archive file
 						return
 					}
-					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.ax", config.Protocol, config.PkgHost, message.Path, message.Hash))
+					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.ax", config.Protocol[config.Pkg], config.Host[config.Pkg], message.Path, message.Hash))
 					if err != nil {
 						s.app.Fail(err)
 						return
@@ -213,7 +213,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				}()
 				go func() {
 					defer getwait.Done()
-					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.js", config.Protocol, config.PkgHost, message.Path, message.Hash))
+					resp, err := http.Get(fmt.Sprintf("%s://%s/%s.%s.js", config.Protocol[config.Pkg], config.Host[config.Pkg], message.Path, message.Hash))
 					if err != nil {
 						s.app.Fail(err)
 						return

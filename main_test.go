@@ -2,6 +2,6 @@ package main
 
 import "testing"
 
-func TestFoo(t *testing.T) {
+func TestPlay(t *testing.T) {
 
 }

@@ -27,11 +27,11 @@ type DeployStore struct {
 }
 
 func (s *DeployStore) LoaderJs() string {
-	return fmt.Sprintf("%s://%s/%s.%s.js", config.Protocol, config.PkgHost, s.mainPath, s.mainHash)
+	return fmt.Sprintf("%s://%s/%s.%s.js", config.Protocol[config.Pkg], config.Host[config.Pkg], s.mainPath, s.mainHash)
 }
 
 func (s *DeployStore) Index() string {
-	return fmt.Sprintf("%s://%s/%s", config.Protocol, config.IndexHost, s.indexHash)
+	return fmt.Sprintf("%s://%s/%s", config.Protocol[config.Index], config.Host[config.Index], s.indexHash)
 }
 
 func (s *DeployStore) Handle(payload *flux.Payload) bool {

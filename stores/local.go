@@ -120,7 +120,7 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 
 		// Hash in page path -> load files from src.jsgo.io json blob
 		if shaRegex.MatchString(location) {
-			resp, err := http.Get(fmt.Sprintf("%s://%s/%s.json", config.Protocol, config.SrcHost, location))
+			resp, err := http.Get(fmt.Sprintf("%s://%s/%s.json", config.Protocol[config.Src], config.Host[config.Src], location))
 			if err != nil {
 				s.app.Fail(err)
 				return true
