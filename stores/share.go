@@ -6,7 +6,7 @@ import (
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/play/actions"
-	"github.com/dave/services/fileserver/constor/constormsg"
+	"github.com/dave/services/constor/constormsg"
 	"github.com/gopherjs/gopherjs/js"
 )
 

@@ -10,7 +10,7 @@ import (
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
 	"github.com/dave/services/builder/buildermsg"
-	"github.com/dave/services/fileserver/constor/constormsg"
+	"github.com/dave/services/constor/constormsg"
 	"github.com/dave/services/getter/gettermsg"
 )
 
