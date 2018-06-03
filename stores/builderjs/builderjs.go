@@ -2,7 +2,6 @@ package builderjs
 
 import (
 	"context"
-	"go/build"
 	"go/token"
 	"go/types"
 	"sort"
@@ -17,6 +16,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 
+	"github.com/dave/services/includer"
 	"github.com/gopherjs/gopherjs/compiler"
 	"golang.org/x/tools/go/gcexportdata"
 )
@@ -69,9 +69,9 @@ func BuildPackage(path string, source map[string]map[string]string, tags []strin
 
 func compileFiles(fset *token.FileSet, path string, tags []string, sourceFiles map[string]string, importContext *compiler.ImportContext, minify bool) (*compiler.Archive, error) {
 	var files []*ast.File
-	inc := newIncluder(sourceFiles, tags)
+	inc := includer.New(sourceFiles, tags)
 	for name, contents := range sourceFiles {
-		include, err := inc.include(name)
+		include, err := inc.Include(name)
 		if err != nil {
 			return nil, err
 		}
@@ -162,33 +162,4 @@ func GetPackageCode(ctx context.Context, archive *compiler.Archive, minify, init
 		return nil, nil, err
 	}
 	return buf.Bytes(), sha.Sum(nil), nil
-}
-
-func newIncluder(source map[string]string, tags []string) *includer {
-	return &includer{
-		source: source,
-		tags:   tags,
-		bctx:   NewBuildContext(source, tags),
-	}
-}
-
-type includer struct {
-	bctx   *build.Context
-	source map[string]string
-	tags   []string
-}
-
-func (i *includer) include(name string) (bool, error) {
-	if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
-		return false, nil
-	}
-	match, err := i.bctx.MatchFile("/", name)
-	if err != nil {
-		return false, err
-	}
-	return match, nil
-}
-
-func Include(name, contents string, tags []string) (bool, error) {
-	return newIncluder(map[string]string{name: contents}, tags).include(name)
 }

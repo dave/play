@@ -31,7 +31,7 @@ type ArchiveStore struct {
 	cache map[string]CacheItem
 
 	// index (path -> item) of the previously received update
-	index deployermsg.Index
+	index deployermsg.ArchiveIndex
 
 	wait sync.WaitGroup
 }
@@ -235,7 +235,7 @@ func (s *ArchiveStore) Handle(payload *flux.Payload) bool {
 				}
 			}()
 			return true
-		case deployermsg.Index:
+		case deployermsg.ArchiveIndex:
 			s.index = message
 		}
 	case *actions.RequestClose:

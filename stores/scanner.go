@@ -12,7 +12,7 @@ import (
 
 	"github.com/dave/flux"
 	"github.com/dave/play/actions"
-	"github.com/dave/play/stores/builderjs"
+	"github.com/dave/services/includer"
 )
 
 func NewScannerStore(app *App) *ScannerStore {
@@ -266,7 +266,7 @@ func (s *ScannerStore) checkForClash() bool {
 
 func (s *ScannerStore) refresh(path, filename, contents string) bool {
 
-	include, err := builderjs.Include(filename, contents, s.app.Compile.Tags())
+	include, err := includer.New(map[string]string{filename: contents}, s.app.Compile.Tags()).Include(filename)
 	if err != nil {
 		// ignore errors (we never want to throw an error while we're scanning the source)
 		return false

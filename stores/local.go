@@ -11,7 +11,6 @@ import (
 
 	"github.com/dave/flux"
 	"github.com/dave/jsgo/config"
-	"github.com/dave/jsgo/server/play/messages"
 	"github.com/dave/locstor"
 	"github.com/dave/play/actions"
 	"github.com/dave/play/models"
@@ -129,14 +128,14 @@ func (s *LocalStore) Handle(payload *flux.Payload) bool {
 				s.app.Fail(fmt.Errorf("error %d loading source", resp.StatusCode))
 				return true
 			}
-			var m messages.Share
-			if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
+			var sp models.SharePack
+			if err := json.NewDecoder(resp.Body).Decode(&sp); err != nil {
 				s.app.Fail(err)
 				return true
 			}
 			s.app.Dispatch(&actions.LoadSource{
-				Source: m.Source,
-				Tags:   m.Tags,
+				Source: sp.Source,
+				Tags:   sp.Tags,
 				Update: true,
 			})
 			break
