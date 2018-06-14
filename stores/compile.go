@@ -143,11 +143,12 @@ func (s *CompileStore) compile() error {
 		frameDoc.Underlying().Call("write", buf.String())
 		frameDoc.Underlying().Call("close")
 
-		c := make(chan struct{})
-		frame.AddEventListener("load", false, func(event dom.Event) {
-			close(c)
-		})
-		<-c
+		// TODO: DON'T NEED THIS NOW? Confirm!
+		// c := make(chan struct{})
+		// frame.AddEventListener("load", false, func(event dom.Event) {
+		// 	close(c)
+		// })
+		// <-c
 	}
 
 	head := frameDoc.GetElementsByTagName("head")[0].(*dom.BasicHTMLElement)
