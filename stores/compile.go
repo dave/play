@@ -107,12 +107,15 @@ func (s *CompileStore) compile() error {
 	// We need to wait for the iframe to load before adding contents or Firefox will clear the iframe
 	// after momentarily flashing up the contents.
 	c := make(chan struct{})
-	frame.AddEventListener("load", false, func(event dom.Event) {
+	listener := frame.AddEventListener("load", false, func(event dom.Event) {
 		close(c)
 	})
 
 	holder.AppendChild(frame)
 	<-c
+
+	// remove the listener so if it's triggered again we don't close the closed channel
+	frame.RemoveEventListener("load", false, listener)
 
 	console := dom.GetWindow().Document().GetElementByID("console")
 	console.SetInnerHTML("")
@@ -142,13 +145,6 @@ func (s *CompileStore) compile() error {
 		frameDoc.Underlying().Call("open")
 		frameDoc.Underlying().Call("write", buf.String())
 		frameDoc.Underlying().Call("close")
-
-		// TODO: DON'T NEED THIS NOW? Confirm!
-		// c := make(chan struct{})
-		// frame.AddEventListener("load", false, func(event dom.Event) {
-		// 	close(c)
-		// })
-		// <-c
 	}
 
 	head := frameDoc.GetElementsByTagName("head")[0].(*dom.BasicHTMLElement)
