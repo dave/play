@@ -125,7 +125,13 @@ func (v *Editor) Mount() {
 }
 
 func (v *Editor) Resize() {
-	v.editor.Call("resize")
+	if v.editor.Object != nil {
+		v.editor.Call("resize")
+	} else {
+		v.app.Debug("************************************************************")
+		v.app.Debug("*** skipped editor resize because v.editor.Object == nil ***")
+		v.app.Debug("************************************************************")
+	}
 }
 
 func (v *Editor) Unmount() {

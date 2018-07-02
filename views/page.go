@@ -58,7 +58,6 @@ func (v *Page) Mount() {
 		js.M{
 			"sizes": v.app.Editor.Sizes(),
 			"onDragEnd": func() {
-				v.editor.Resize()
 				v.app.Dispatch(&actions.UserChangedSplit{
 					Sizes: v.split1.GetSizes(),
 				})
