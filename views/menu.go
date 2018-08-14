@@ -324,6 +324,14 @@ func (v *Menu) Render() vecty.ComponentOrHTML {
 						),
 						vecty.Text("More info"),
 					),
+					elem.Anchor(
+						vecty.Markup(
+							vecty.Class("dropdown-item"),
+							prop.Href("https://patreon.com/davebrophy"),
+							vecty.Property("target", "_blank"),
+						),
+						vecty.Text("Help with my hosting bills"),
+					),
 				),
 			),
 		),
