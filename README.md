@@ -189,3 +189,6 @@ dependency tree.
 #### Remove package
 A package can be removed with the `Remove package` option.
 
+## Run locally?
+
+If you'd like to run `play.jsgo.io` locally, take a look at [these instructions](https://github.com/dave/jsgo/blob/master/LOCAL.md).
