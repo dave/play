@@ -28,7 +28,6 @@ func run() {
 	app := &stores.App{}
 	app.Init()
 	p := views.NewPage(app)
-	vecty.RenderBody(p)
 
 	app.Watch(nil, func(done chan struct{}) {
 		defer close(done)
@@ -36,4 +35,6 @@ func run() {
 	})
 
 	app.Dispatch(&actions.Load{})
+
+	vecty.RenderBody(p)
 }
